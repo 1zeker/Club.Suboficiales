@@ -1,0 +1,338 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CLUB DE SUBOFICIALES - Cotizador</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+        }
+ 
+        /* Imagen de fondo sutil */
+        .app-bg-watermark {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: url('calzada.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.12; /* Muy transparente para no molestar */
+            filter: grayscale(100%) blur(2px);
+        }
+ 
+        .category-scroll::-webkit-scrollbar { display: none; }
+        
+        .pill-active {
+            background: #1e3a8a;
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+ 
+        .product-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background-color: rgba(255, 255, 255, 0.9); /* Fondo semi-transparente para leer mejor */
+            backdrop-filter: blur(8px);
+        }
+        
+        .product-card:active { transform: scale(0.98); }
+        
+        .product-selected {
+            border-color: #1e3a8a;
+            background-color: #eff6ff;
+            box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.1);
+        }
+ 
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; padding: 0; }
+            .h-screen { height: auto !important; overflow: visible !important; }
+            .app-bg-watermark { display: none; }
+        }
+    </style>
+</head>
+<body class="antialiased overflow-hidden">
+ 
+    <!-- Capa de fondo -->
+    <div class="app-bg-watermark no-print"></div>
+ 
+    <div class="h-screen flex flex-col max-w-md mx-auto relative bg-white/80 shadow-2xl overflow-hidden border-x border-slate-200">
+        
+        <!-- HEADER -->
+        <header class="bg-white/95 backdrop-blur-md px-6 pt-8 pb-6 no-print border-b border-slate-100 z-10">
+            <div class="flex items-center gap-4 mb-6">
+                <img src="logo2.jpg" alt="Logo" class="w-14 h-14 object-contain" onerror="this.style.display='none'">
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter text-slate-900 leading-tight">CLUB DE SUBOFICIALES</h1>
+                    <p class="text-[9px] font-extrabold text-blue-800 uppercase tracking-widest opacity-80">Cotizador de Eventos 2026</p>
+                </div>
+            </div>
+            
+            <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden">
+                <div class="relative z-10 flex justify-between items-center">
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">N° de Invitados</p>
+                        <div class="flex items-center gap-4">
+                            <button onclick="changePeople(-5)" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center active:bg-white/30 text-lg font-bold">-</button>
+                            <input type="number" id="people-count" value="50" onchange="updateUI()" class="bg-transparent text-2xl font-black w-16 text-center outline-none border-b border-white/20">
+                            <button onclick="changePeople(5)" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center active:bg-white/30 text-lg font-bold">+</button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Presupuesto Neto</p>
+                        <p id="header-total" class="text-2xl font-black text-blue-400">$0</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+ 
+        <!-- NAVEGACIÓN -->
+        <nav class="bg-white/90 backdrop-blur-sm no-print border-b border-slate-50">
+            <div id="category-container" class="flex overflow-x-auto px-6 py-4 gap-2 category-scroll"></div>
+        </nav>
+ 
+        <!-- LISTA DE PRODUCTOS -->
+        <main class="flex-1 overflow-y-auto px-6 pt-4 pb-48 no-print">
+            <div id="product-list" class="space-y-3"></div>
+        </main>
+ 
+        <!-- FOOTER ACCIÓN -->
+        <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-100 p-6 pb-10 no-print z-40 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+            <div class="flex justify-between items-center mb-6 px-2">
+                <div onclick="toggleDrawer()" class="cursor-pointer">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Precio por Persona</p>
+                    <p id="total-per-person" class="text-2xl font-black text-slate-900">$0</p>
+                </div>
+                <button onclick="toggleDrawer()" class="bg-slate-100 text-slate-900 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-tighter flex items-center gap-2">
+                    <span id="badge-count" class="bg-blue-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[9px]">0</span> ITEMS <i class="fa-solid fa-chevron-up"></i>
+                </button>
+            </div>
+            <button onclick="window.print()" class="w-full bg-blue-900 active:scale-[0.98] transition-all text-white py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 shadow-xl shadow-blue-200">
+                <i class="fa-solid fa-file-pdf text-lg"></i>
+                Generar Propuesta PDF
+            </button>
+        </div>
+ 
+        <!-- DRAWER RESUMEN -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 z-50 hidden backdrop-blur-sm" onclick="toggleDrawer()"></div>
+        <div id="drawer" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white z-[60] transform translate-y-full transition-transform duration-500 rounded-t-[3rem] p-8 h-[75vh] flex flex-col no-print shadow-2xl">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-slate-900">Resumen Detalle</h2>
+                <button onclick="clearCart()" class="text-red-500 text-[10px] font-black uppercase tracking-widest">Limpiar</button>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
+            <div class="mt-6 pt-6 border-t-2 border-slate-50">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500 font-bold text-sm uppercase tracking-widest">Total Estimado</span>
+                    <span id="drawer-total" class="text-3xl font-black text-blue-900">$0</span>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- VISTA DE IMPRESIÓN -->
+        <div class="hidden print-only p-12 bg-white text-slate-900 w-full">
+            <div class="flex justify-between items-center border-b-4 border-slate-900 pb-10 mb-12">
+                <div class="flex items-center gap-6">
+                    <img src="logo2.jpg" alt="Logo" class="w-24 h-24 object-contain">
+                    <div>
+                        <h1 class="text-4xl font-black tracking-tighter uppercase">Club de Suboficiales</h1>
+                        <p class="text-blue-800 font-black uppercase text-xs mt-1 tracking-[0.3em]">Fuerza Aérea de Chile - Eventos 2026</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Cotización Nº</p>
+                    <p class="text-xl font-black">2026-${Math.floor(Math.random()*9000)+1000}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-8 mb-12">
+                <div class="bg-slate-50 p-8 rounded-3xl border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Cuota de Invitados</p>
+                    <p id="print-people" class="text-3xl font-black text-slate-900">--</p>
+                </div>
+                <div class="bg-blue-900 p-8 rounded-3xl text-white text-right">
+                    <p class="text-[10px] font-bold text-blue-200 uppercase mb-2">Total Neto Presupuestado</p>
+                    <p id="print-total-final" class="text-4xl font-black">$0</p>
+                </div>
+            </div>
+ 
+            <div class="mb-12">
+                <h3 class="text-xs font-black uppercase tracking-[0.2em] text-slate-400 border-b pb-3 mb-6">Detalle de Servicios Seleccionados</h3>
+                <div id="print-list" class="space-y-4"></div>
+            </div>
+ 
+            <div class="mt-20 pt-10 border-t border-slate-100 flex justify-between items-end">
+                <div class="max-w-xs text-[10px] text-slate-400 leading-relaxed italic">
+                    Esta propuesta gastronómica ha sido generada automáticamente y está sujeta a confirmación de stock y fecha. Precios expresados en valores netos.
+                </div>
+                <div class="text-right">
+                    <div class="w-48 h-px bg-slate-900 mb-2 ml-auto"></div>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Departamento de Eventos</p>
+                    <p class="text-[9px] text-slate-500">Club de Suboficiales F.A.CH</p>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <script>
+        const DATABASE = {
+            "Aperitivos": [
+                {id: 1, n: "Pisco Sour Tradicional", p: 3000},
+                {id: 2, n: "Amareto Sour", p: 2700},
+                {id: 3, n: "Espumante Demi Sec", p: 2200},
+                {id: 4, n: "Bebida en Lata", p: 2600},
+                {id: 5, n: "Primavera c/ Alcohol", p: 2800},
+                {id: 6, n: "Primavera s/ Alcohol", p: 2200}
+            ],
+            "Cóctel": [
+                {id: 7, n: "Ceviche Salmón Coctel", p: 2300},
+                {id: 8, n: "Ceviche Mixto Coctel", p: 2700},
+                {id: 10, n: "Empanaditas de Queso", p: 1500},
+                {id: 11, n: "Brocheta Ave-Pimentón", p: 1800}
+            ],
+            "Entradas": [
+                {id: 12, n: "Timbal Palta Reina", p: 4400},
+                {id: 13, n: "Trilogía de Causas", p: 4700},
+                {id: 14, n: "Crepes de Ave Choclo", p: 3700},
+                {id: 15, n: "Ceviche Reineta Entrada", p: 6800}
+            ],
+            "Platos Principales": [
+                {id: 16, n: "Lomo de Res", p: 8200},
+                {id: 17, n: "Lomo Saltado", p: 8300},
+                {id: 18, n: "Salmón a la Mantequilla", p: 12600},
+                {id: 19, n: "Pechuga de Ave Rellena", p: 5300}
+            ],
+            "Acompañamientos": [
+                {id: 20, n: "Papas Duquesas", p: 2200},
+                {id: 21, n: "Pastelera de Choclo", p: 3600},
+                {id: 22, n: "Puré Rústico", p: 2300}
+            ],
+            "Postres": [
+                {id: 27, n: "Almendrado Evento", p: 4200},
+                {id: 28, n: "Celestino con Helado", p: 3300},
+                {id: 29, n: "Leche Asada", p: 2900}
+            ],
+            "Coffee": [
+                {id: 23, n: "Café Eventos", p: 1900},
+                {id: 24, n: "Té Eventos", p: 1400},
+                {id: 25, n: "Ave Italiano Sandwich", p: 5700},
+                {id: 26, n: "Barros Luco Sandwich", p: 6300}
+            ]
+        };
+ 
+        let currentCat = "Aperitivos";
+        let cart = [];
+        let isDrawerOpen = false;
+ 
+        function updateUI() {
+            const people = parseInt(document.getElementById('people-count').value) || 1;
+            
+            // Nav
+            const nav = document.getElementById('category-container');
+            nav.innerHTML = Object.keys(DATABASE).map(cat => `
+                <button onclick="setCat('${cat}')" class="px-5 py-2.5 rounded-2xl font-bold text-[11px] uppercase tracking-tighter whitespace-nowrap transition-all ${cat === currentCat ? 'pill-active' : 'bg-white text-slate-400 border border-slate-100'}">
+                    ${cat}
+                </button>
+            `).join('');
+ 
+            // List
+            const list = document.getElementById('product-list');
+            list.innerHTML = DATABASE[currentCat].map(item => {
+                const inCart = cart.find(c => c.id === item.id);
+                return `
+                    <div onclick="toggleItem(${item.id}, '${item.n}', ${item.p})" class="product-card p-5 rounded-3xl flex justify-between items-center shadow-sm border border-slate-100 ${inCart ? 'product-selected' : ''}">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${inCart ? 'bg-blue-900 text-white rotate-0' : 'bg-slate-50 text-slate-300'}">
+                                <i class="fa-solid ${inCart ? 'fa-check' : 'fa-plus'}"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm leading-tight">${item.n}</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">Precio Unitario Neto</p>
+                            </div>
+                        </div>
+                        <p class="font-black text-blue-900">$${item.p.toLocaleString('es-CL')}</p>
+                    </div>
+                `;
+            }).join('');
+ 
+            const pp = cart.reduce((s, i) => s + i.p, 0);
+            const total = pp * people;
+ 
+            document.getElementById('total-per-person').innerText = `$${pp.toLocaleString('es-CL')}`;
+            document.getElementById('header-total').innerText = `$${total.toLocaleString('es-CL')}`;
+            document.getElementById('badge-count').innerText = cart.length;
+            document.getElementById('drawer-total').innerText = `$${total.toLocaleString('es-CL')}`;
+            document.getElementById('print-people').innerText = `${people} Invitados`;
+            document.getElementById('print-total-final').innerText = `$${total.toLocaleString('es-CL')}`;
+ 
+            // Drawer Items
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = cart.length ? cart.map(i => `
+                <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div>
+                        <p class="font-bold text-sm text-slate-800">${i.n}</p>
+                        <p class="text-[10px] text-blue-900 font-black tracking-widest mt-0.5">$${i.p.toLocaleString('es-CL')} p/p</p>
+                    </div>
+                    <button onclick="toggleItem(${i.id})" class="text-slate-300 hover:text-red-500 p-2 text-xl transition-colors">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+            `).join('') : '<div class="text-center py-20 opacity-20"><i class="fa-solid fa-cart-flatbed text-4xl mb-4"></i><p class="font-bold">Lista vacía</p></div>';
+ 
+            // Print List
+            document.getElementById('print-list').innerHTML = cart.map(i => `
+                <div class="flex justify-between items-center py-4 border-b border-slate-50">
+                    <div>
+                        <p class="text-lg font-black text-slate-900">${i.n}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Sugerencia de Chef</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xl font-black text-blue-900">$${(i.p * people).toLocaleString('es-CL')}</p>
+                        <p class="text-[9px] text-slate-400 font-medium">Neto ($${i.p.toLocaleString('es-CL')} u.)</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+ 
+        function setCat(cat) { currentCat = cat; updateUI(); }
+        function changePeople(val) {
+            const input = document.getElementById('people-count');
+            let res = parseInt(input.value) + val;
+            input.value = res < 1 ? 1 : res;
+            updateUI();
+        }
+        function toggleItem(id, n, p) {
+            const idx = cart.findIndex(c => c.id === id);
+            if(idx > -1) { cart.splice(idx, 1); }
+            else { cart.push({id, n, p}); }
+            updateUI();
+        }
+        function clearCart() { cart = []; updateUI(); toggleDrawer(); }
+        function toggleDrawer() {
+            isDrawerOpen = !isDrawerOpen;
+            const d = document.getElementById('drawer');
+            const o = document.getElementById('drawer-overlay');
+            d.style.transform = isDrawerOpen ? "translateY(0)" : "translateY(100%)";
+            o.classList.toggle('hidden', !isDrawerOpen);
+        }
+        
+        window.onload = updateUI;
+    </script>
+</body>
+</html>
+ 
+```
