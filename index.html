@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -69,7 +68,7 @@
     <!-- Capa de fondo -->
     <div class="app-bg-watermark no-print"></div>
  
-    <div class="h-screen flex flex-col max-w-md mx-auto relative bg-white/80 shadow-2xl overflow-hidden border-x border-slate-200">
+    <div class="h-screen flex flex-col w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto relative bg-white/80 shadow-2xl overflow-hidden md:rounded-[2rem] md:my-4 md:h-[calc(100vh-2rem)] border-x md:border border-slate-200">
         
         <!-- HEADER -->
         <header class="bg-white/95 backdrop-blur-md px-6 pt-8 pb-6 no-print border-b border-slate-100 z-10">
@@ -106,11 +105,11 @@
  
         <!-- LISTA DE PRODUCTOS -->
         <main class="flex-1 overflow-y-auto px-6 pt-4 pb-48 no-print">
-            <div id="product-list" class="space-y-3"></div>
+            <div id="product-list" class="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
         </main>
  
         <!-- FOOTER ACCIÓN -->
-        <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-100 p-6 pb-10 no-print z-40 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div class="fixed bottom-0 left-0 right-0 w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto bg-white/95 backdrop-blur-md border-t border-slate-100 p-6 pb-10 no-print z-40 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
             <div class="flex justify-between items-center mb-6 px-2">
                 <div onclick="toggleDrawer()" class="cursor-pointer">
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Precio por Persona</p>
@@ -128,7 +127,7 @@
  
         <!-- DRAWER RESUMEN -->
         <div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 z-50 hidden backdrop-blur-sm" onclick="toggleDrawer()"></div>
-        <div id="drawer" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white z-[60] transform translate-y-full transition-transform duration-500 rounded-t-[3rem] p-8 h-[75vh] flex flex-col no-print shadow-2xl">
+        <div id="drawer" class="fixed bottom-0 left-0 right-0 w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto bg-white z-[60] transform translate-y-full transition-transform duration-500 rounded-t-[3rem] p-8 h-[75vh] flex flex-col no-print shadow-2xl">
             <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-black text-slate-900">Resumen Detalle</h2>
@@ -190,49 +189,132 @@
  
     <script>
         const DATABASE = {
-            "Aperitivos": [
-                {id: 1, n: "Pisco Sour Tradicional", p: 3000},
-                {id: 2, n: "Amareto Sour", p: 2700},
-                {id: 3, n: "Espumante Demi Sec", p: 2200},
-                {id: 4, n: "Bebida en Lata", p: 2600},
-                {id: 5, n: "Primavera c/ Alcohol", p: 2800},
-                {id: 6, n: "Primavera s/ Alcohol", p: 2200}
-            ],
-            "Cóctel": [
-                {id: 7, n: "Ceviche Salmón Coctel", p: 2300},
-                {id: 8, n: "Ceviche Mixto Coctel", p: 2700},
-                {id: 10, n: "Empanaditas de Queso", p: 1500},
-                {id: 11, n: "Brocheta Ave-Pimentón", p: 1800}
-            ],
-            "Entradas": [
-                {id: 12, n: "Timbal Palta Reina", p: 4400},
-                {id: 13, n: "Trilogía de Causas", p: 4700},
-                {id: 14, n: "Crepes de Ave Choclo", p: 3700},
-                {id: 15, n: "Ceviche Reineta Entrada", p: 6800}
-            ],
-            "Platos Principales": [
-                {id: 16, n: "Lomo de Res", p: 8200},
-                {id: 17, n: "Lomo Saltado", p: 8300},
-                {id: 18, n: "Salmón a la Mantequilla", p: 12600},
-                {id: 19, n: "Pechuga de Ave Rellena", p: 5300}
-            ],
-            "Acompañamientos": [
-                {id: 20, n: "Papas Duquesas", p: 2200},
-                {id: 21, n: "Pastelera de Choclo", p: 3600},
-                {id: 22, n: "Puré Rústico", p: 2300}
-            ],
-            "Postres": [
-                {id: 27, n: "Almendrado Evento", p: 4200},
-                {id: 28, n: "Celestino con Helado", p: 3300},
-                {id: 29, n: "Leche Asada", p: 2900}
-            ],
-            "Coffee": [
-                {id: 23, n: "Café Eventos", p: 1900},
-                {id: 24, n: "Té Eventos", p: 1400},
-                {id: 25, n: "Ave Italiano Sandwich", p: 5700},
-                {id: 26, n: "Barros Luco Sandwich", p: 6300}
-            ]
-        };
+    "Postres": [
+        {id: 352, n: "Almendrado", p: 4200},
+        {id: 353, n: "Celestino con helado", p: 3300},
+        {id: 449, n: "Crema calatana", p: 3100},
+        {id: 354, n: "Leche asada", p: 2900},
+        {id: 459, n: "Mousse de chocolate vegano", p: 3300},
+        {id: 355, n: "Pana cotta de café", p: 3200},
+        {id: 356, n: "Pana cotta de manjar", p: 3000},
+        {id: 357, n: "Suspiro berries", p: 3800},
+        {id: 447, n: "Turron de vino tinto", p: 2800}
+    ],
+    "Aperitivos": [
+        {id: 366, n: "Amareto sour", p: 2700},
+        {id: 371, n: "Bebida en lata c/a", p: 2600},
+        {id: 372, n: "Bebida en lata s/a", p: 2600},
+        {id: 367, n: "Espumante demi sec aperitivo", p: 2200},
+        {id: 368, n: "Jugo natural de chirimolla aperitivo", p: 2400},
+        {id: 406, n: "Jugo natural de frambuesa aperitivo", p: 2400},
+        {id: 407, n: "Jugo natural de mango aperitivo", p: 2300},
+        {id: 369, n: "Mango sour aperitivo", p: 2200},
+        {id: 370, n: "Pisco sour aperitivo", p: 2100}
+    ],
+    "Sandwich": [
+        {id: 365, n: "Ave italiano sanwich", p: 5700},
+        {id: 22, n: "Barros luco sanwich", p: 6300},
+        {id: 364, n: "Chacarero sandwich", p: 5300},
+        {id: 363, n: "Churrasco italiano sandwich", p: 6000},
+        {id: 389, n: "Tapadito ave pimentón", p: 1900},
+        {id: 390, n: "Tapadito salame queso crema y aceitunas", p: 1900}
+    ],
+    "Cóctel": [
+        {id: 303, n: "Brocheta camaron al ajillo", p: 2300},
+        {id: 314, n: "Brocheta camaron camaron salsa teriyaki", p: 2100},
+        {id: 304, n: "Brocheta carne salsa demi glase", p: 3200},
+        {id: 384, n: "Brocheta de ave bbq 5 unidades", p: 4200},
+        {id: 305, n: "Brocheta de ave bbq", p: 2000},
+        {id: 306, n: "Brocheta mixta ave carne sals oriental", p: 3200},
+        {id: 443, n: "Brocheta tomate cherry y queso de cabra", p: 1400},
+        {id: 448, n: "Camaron apanado en salsa golf", p: 1800},
+        {id: 442, n: "Ceviche de champignon coctel", p: 5900},
+        {id: 307, n: "cheviche de reineta coctel", p: 1900},
+        {id: 309, n: "Ceviche de salmón coctel", p: 2300},
+        {id: 310, n: "Ceviche mixto reineta y salmón coctel", p: 2700},
+        {id: 403, n: "Crostini tomate baby pesto de albahaca cebolla caramelizada", p: 2000},
+        {id: 311, n: "Crostini palmitos y mix de vegetales", p: 1700},
+        {id: 315, n: "Crostini salmón ahumado", p: 2500},
+        {id: 312, n: "Empanadas de queso coctel", p: 1700},
+        {id: 313, n: "Mini albondigas en salsa de vino tinto dulce", p: 1800},
+        {id: 450, n: "Mini carpccio de zuquini", p: 1900},
+        {id: 316, n: "Mini carpccio de salmon ahumado", p: 2500}
+    ],
+    "Entradas": [
+        {id: 320, n: "Ceviche de champignon entrada", p: 3300},
+        {id: 451, n: "Ceviche de quinoa", p: 2800},
+        {id: 317, n: "Ceviche de reineta entrada", p: 5700},
+        {id: 318, n: "Ceviche mixto reineta y salmón entrada", p: 6800},
+        {id: 457, n: "Crepe relleno de espinaca champiñon queso mantecoso", p: 3600},
+        {id: 321, n: "Crepes de ave cholo entrada", p: 3700},
+        {id: 322, n: "Crepe espinca choclo entrada", p: 3300},
+        {id: 460, n: "Tartar de palmitos y palta", p: 3700},
+        {id: 323, n: "Timbal jamón palta entrada", p: 3900},
+        {id: 324, n: "Timbal jamón tomate choclo entrada", p: 3200},
+        {id: 325, n: "Timbal palta camarón entrada", p: 5500},
+        {id: 326, n: "Timbal palta reina entrada", p: 4400},
+        {id: 458, n: "Trilogia de causas limeñas", p: 4700}
+    ],
+    "Platos Principales": [
+        {id: 455, n: "Champiñones rellenos de ratatouille a la parmesana", p: 3200},
+        {id: 327, n: "Filete de res principal", p: 9500},
+        {id: 328, n: "Lomo de res principal", p: 8200},
+        {id: 329, n: "Lomo saltado principal", p: 8300},
+        {id: 373, n: "Menu niño", p: 8800},
+        {id: 332, n: "Pechuga de ave rellena principal", p: 5300},
+        {id: 330, n: "Pollo a la plancha principal", p: 4300},
+        {id: 331, n: "Salmón a la mantequilla", p: 12600},
+        {id: 408, n: "Suprema de ave apanada niños", p: 3800},
+        {id: 334, n: "Vegetariano om. cham. queso principal", p: 3800},
+        {id: 333, n: "Vegetariano principal", p: 3300},
+        {id: 335, n: "Verduras salteadas papas rusticas principal", p: 2800}
+    ],
+    "Acompañamientos": [
+        {id: 463, n: "Cremoso de quinoa", p: 2800},
+        {id: 456, n: "Hummus de garbanzos", p: 2000},
+        {id: 444, n: "Lasaña de verduras", p: 2900},
+        {id: 336, n: "Papas al ajillo acompañamiento", p: 2300},
+        {id: 337, n: "Papas al romero acompañamiento", p: 2200},
+        {id: 338, n: "Papas duquesas acompañamiento", p: 2200},
+        {id: 438, n: "Pastelera de choclo con verduras salteadas", p: 3300},
+        {id: 405, n: "Pastelera de choclo", p: 3600},
+        {id: 339, n: "Pure rustico acompañamiento", p: 2300},
+        {id: 340, n: "Risotto al vino tinto acompañamiento", p: 2600},
+        {id: 341, n: "Risotto de champiñon acompañamiento", p: 3200},
+        {id: 402, n: "Risotto de verduras", p: 3100},
+        {id: 421, n: "Verduras salteadas y papas al ajillo acompañamiento", p: 2400},
+        {id: 342, n: "Verduras salteadas acompañamiento", p: 3000}
+    ],
+    "Salsas": [
+        {id: 343, n: "Salsa de champiñon blanca", p: 2800},
+        {id: 350, n: "Salsa de champiñon española", p: 2900},
+        {id: 344, n: "Salsa finas hierbas", p: 2200},
+        {id: 446, n: "Salsa latte harvest", p: 1600},
+        {id: 345, n: "Salsa migñon champiñon", p: 2100},
+        {id: 346, n: "Salsa mostaza", p: 1700},
+        {id: 347, n: "Salsa pimienta blanca", p: 1700},
+        {id: 351, n: "Salsa pimienta española", p: 1800},
+        {id: 348, n: "Salsa queso azul roquefort", p: 2300},
+        {id: 349, n: "Salsa vino tinto dulce", p: 1700}
+    ],
+    "Coffee": [
+        {id: 391, n: "Café", p: 1900},
+        {id: 441, n: "Café grande", p: 1800},
+        {id: 360, n: "Café sachet", p: 1600},
+        {id: 359, n: "Té de hierbas servicio", p: 1900},
+        {id: 392, n: "Té", p: 1400},
+        {id: 361, n: "Té servicio", p: 1400}
+    ],
+    "Decoraciones": [
+        {id: 454, n: "Crocante de queso", p: 1700},
+        {id: 464, n: "Crujiente de arroz", p: 1300},
+        {id: 462, n: "Tuile", p: 1300}
+    ],
+    "Dressing": [
+        {id: 452, n: "Dressing de mango", p: 1700},
+        {id: 461, n: "Dressing de pimientos asados", p: 1700}
+    ]
+};
  
         let currentCat = "Aperitivos";
         let cart = [];
@@ -334,5 +416,3 @@
     </script>
 </body>
 </html>
- 
-```
