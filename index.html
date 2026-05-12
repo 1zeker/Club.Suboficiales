@@ -104,9 +104,9 @@
         </nav>
  
         <!-- LISTA DE PRODUCTOS -->
-        <main class="flex-1 overflow-y-auto px-6 pt-4 pb-[340px] md:pb-[280px] lg:pb-[240px] no-print" style="scroll-padding-bottom: 340px;">
-    <div id="product-list" class="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0"></div>
-    <div class="h-[260px] md:h-[220px] lg:h-[180px]"></div>
+        <main class="flex-1 overflow-y-auto px-6 pt-4 pb-[340px] md:pb-10 no-print" style="scroll-padding-bottom: 340px;">
+    <div id="product-list" class="space-y-3 md:flex md:gap-4 md:overflow-x-auto md:overflow-y-hidden md:pb-4 md:snap-x md:snap-mandatory"></div>
+    <div class="h-[260px] md:h-0"></div>
 </main>
  
         <!-- FOOTER ACCIÓN -->
@@ -335,22 +335,22 @@
             // List
             const list = document.getElementById('product-list');
             list.innerHTML = DATABASE[currentCat].map(item => {
-                const inCart = cart.find(c => c.id === item.id);
-                return `
-                    <div onclick="toggleItem(${item.id}, '${item.n}', ${item.p})" class="product-card p-5 rounded-3xl flex justify-between items-center shadow-sm border border-slate-100 ${inCart ? 'product-selected' : ''}">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${inCart ? 'bg-blue-900 text-white rotate-0' : 'bg-slate-50 text-slate-300'}">
-                                <i class="fa-solid ${inCart ? 'fa-check' : 'fa-plus'}"></i>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-800 text-sm leading-tight">${item.n}</p>
-                                <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">Precio Unitario Neto</p>
-                            </div>
-                        </div>
-                        <p class="font-black text-blue-900">$${item.p.toLocaleString('es-CL')}</p>
-                    </div>
-                `;
-            }).join('');
+    const inCart = cart.find(c => c.id === item.id);
+    return `
+        <div onclick="toggleItem(${item.id}, '${item.n}', ${item.p})" class="product-card p-5 rounded-3xl flex justify-between items-center shadow-sm border border-slate-100 md:min-w-[380px] md:max-w-[380px] md:shrink-0 md:snap-start ${inCart ? 'product-selected' : ''}">
+            <div class="flex items-center gap-4 min-w-0">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${inCart ? 'bg-blue-900 text-white rotate-0' : 'bg-slate-50 text-slate-300'}">
+                    <i class="fa-solid ${inCart ? 'fa-check' : 'fa-plus'}"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="font-bold text-slate-800 text-sm leading-tight break-words">${item.n}</p>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">Precio Unitario Neto</p>
+                </div>
+            </div>
+            <p class="font-black text-blue-900">$${item.p.toLocaleString('es-CL')}</p>
+        </div>
+    `;
+}).join('');
  
             const pp = cart.reduce((s, i) => s + i.p, 0);
             const total = pp * people;
