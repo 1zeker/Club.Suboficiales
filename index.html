@@ -7,26 +7,939 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap');
-    *{box-sizing:border-box}html,body{margin:0;padding:0;width:100%;min-height:100%;overflow-x:hidden}body{font-family:'Plus Jakarta Sans',sans-serif;background:#f3f6fb;color:#1e293b}.serif{font-family:'Cormorant Garamond',serif}.app-shell{width:min(1200px,100%);margin:0 auto;min-height:100vh;background:rgba(255,255,255,.94);box-shadow:0 18px 60px rgba(15,23,42,.12)}.bg-watermark{position:fixed;inset:0;z-index:-1;background-image:url('./calzada.jpg');background-size:cover;background-position:center;opacity:.08;filter:grayscale(100%) blur(1px)}.pill-active{background:#1e3a8a;color:#fff;box-shadow:0 6px 16px rgba(30,58,138,.22)}.category-scroll::-webkit-scrollbar,.drawer-scroll::-webkit-scrollbar{display:none}.category-scroll,.drawer-scroll{scrollbar-width:none}.product-card{transition:transform .15s ease,border-color .15s ease,background-color .15s ease;cursor:pointer;border:1px solid #e2e8f0;background:rgba(255,255,255,.98)}.product-card:active{transform:scale(.99)}.product-selected{border-color:#1e3a8a;background:#eff6ff}.qty-btn{transition:all .15s ease}.qty-btn:active{transform:scale(.95)}.print-only{display:none}.print-sheet{width:210mm;min-height:297mm;background:white;color:#111827;position:relative}.print-sheet:before{content:'';position:absolute;top:16px;left:18px;right:18px;height:10px;background:#0d4597}.print-sheet:after{content:'';position:absolute;top:16px;right:18px;width:8px;bottom:16px;background:#0d4597}@page{size:A4 portrait;margin:5mm}@media print{body{background:white}.no-print{display:none!important}.print-only{display:block!important}.app-shell{box-shadow:none;width:100%}.print-sheet{width:100%;min-height:auto;page-break-inside:avoid;break-inside:avoid}.print-sheet:before,.print-sheet:after{display:none}.print-grid{display:grid!important;grid-template-columns:56mm 1fr!important;gap:4mm!important}.print-left{width:56mm!important}.print-title{font-size:15pt!important;letter-spacing:.12em!important}.print-section{margin-bottom:2.5mm!important}.print-item{margin:.35mm 0!important}.print-obs{min-height:0!important;height:auto!important;padding:8px!important}.print-background{position:absolute;inset:0;opacity:.08;z-index:0;pointer-events:none;background-image:url('./calzada.jpg');background-size:cover;background-position:center;filter:grayscale(100%) blur(1px)}.print-content{position:relative;z-index:1;transform:scale(var(--print-scale,1));transform-origin:top left;width:calc(100% / var(--print-scale,1))}}
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&display=swap');
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    html,body{
+      height:100%;
+      height:100dvh;
+      overflow:hidden;
+      font-family:'Plus Jakarta Sans',sans-serif;
+      color:#1e293b;
+      background:#f1f5f9;
+    }
+
+    body{display:flex;flex-direction:column}
+
+    /* ── SCROLLBARS ── */
+    .scroll-y{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+    .scroll-y::-webkit-scrollbar{width:4px}
+    .scroll-y::-webkit-scrollbar-track{background:transparent}
+    .scroll-y::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+    .no-sb{scrollbar-width:none}
+    .no-sb::-webkit-scrollbar{display:none}
+
+    /* ── FULL APP WRAPPER ── */
+    #app{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+
+    /* ── HEADER ── */
+    #app-header{
+      flex:none;
+      background:white;
+      border-bottom:1px solid #e2e8f0;
+      z-index:20;
+    }
+
+    /* ── APP BODY ── */
+    #app-body{flex:1;display:flex;overflow:hidden;min-height:0}
+
+    /* ── LEFT SIDEBAR: categories ── */
+    #cat-sidebar{
+      width:192px;
+      flex:none;
+      display:none;
+      flex-direction:column;
+      border-right:1px solid #e2e8f0;
+      background:white;
+      overflow:hidden;
+    }
+    @media(min-width:1024px){#cat-sidebar{display:flex}}
+
+    /* ── CENTER PANEL ── */
+    #center-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f8fafc}
+
+    #products-scroll{
+      flex:1;
+      overflow-y:auto;
+      padding:12px 12px 88px;
+      scrollbar-width:thin;
+      scrollbar-color:#cbd5e1 transparent;
+    }
+    #products-scroll::-webkit-scrollbar{width:4px}
+    #products-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+    @media(min-width:640px){#products-scroll{padding:14px 16px 88px}}
+    @media(min-width:1024px){#products-scroll{padding:14px 16px 16px}}
+
+    /* ── MOBILE CATEGORY BAR ── */
+    #mobile-cat-bar{
+      display:flex;
+      overflow-x:auto;
+      padding:8px 12px;
+      gap:6px;
+      background:white;
+      border-bottom:1px solid #e2e8f0;
+      flex:none;
+      scrollbar-width:none;
+    }
+    #mobile-cat-bar::-webkit-scrollbar{display:none}
+    @media(min-width:1024px){#mobile-cat-bar{display:none}}
+
+    /* ── CART / DRAWER ── */
+    #drawer{
+      position:fixed;
+      bottom:0;left:0;right:0;
+      z-index:60;
+      background:white;
+      transform:translateY(100%);
+      transition:transform .28s cubic-bezier(.32,.72,0,1);
+      border-radius:22px 22px 0 0;
+      box-shadow:0 -8px 48px rgba(15,23,42,.18);
+      max-height:88vh;
+      display:flex;
+      flex-direction:column;
+    }
+    @media(min-width:1024px){
+      #drawer{
+        position:static!important;
+        transform:none!important;
+        transition:none;
+        border-radius:0;
+        box-shadow:none;
+        max-height:none;
+        width:272px;
+        flex:none;
+        border-left:1px solid #e2e8f0;
+      }
+      #drawer-handle{display:none}
+      #drawer-overlay{display:none!important}
+    }
+
+    /* ── MOBILE BOTTOM BAR ── */
+    #mobile-bottom-bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 16px;
+      background:white;
+      border-top:1px solid #e2e8f0;
+      flex:none;
+      z-index:30;
+    }
+    @media(min-width:1024px){#mobile-bottom-bar{display:none}}
+
+    /* ── PRODUCT CARDS ── */
+    .pcard{
+      background:white;
+      border:1.5px solid #e2e8f0;
+      border-radius:14px;
+      transition:border-color .15s,box-shadow .15s;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .pcard:hover{border-color:#bfdbfe;box-shadow:0 2px 12px rgba(30,58,138,.07)}
+    .pcard.sel{border-color:#1d4ed8;background:#eff6ff}
+    .pcard.distributing{cursor:pointer}
+    .pcard.distributing:active{transform:scale(.99)}
+    .pcard.dist-sel{border-color:#1d4ed8;background:#eff6ff}
+
+    /* ── CATEGORY BUTTONS SIDEBAR ── */
+    .csb{
+      width:100%;display:flex;align-items:center;gap:8px;
+      padding:9px 10px;border-radius:10px;
+      font-size:11.5px;font-weight:700;text-align:left;
+      color:#475569;border:none;background:transparent;cursor:pointer;
+      transition:background .12s,color .12s;font-family:inherit;
+      line-height:1.2;
+    }
+    .csb:hover{background:#f1f5f9;color:#0f172a}
+    .csb.active{background:#1e40af;color:white}
+    .csb .dot{width:7px;height:7px;border-radius:50%;background:#cbd5e1;flex:none}
+    .csb.active .dot{background:rgba(255,255,255,.5)}
+    .csb .cbadge{margin-left:auto;background:rgba(29,78,216,.1);color:#1e40af;font-size:9px;font-weight:900;padding:1px 5px;border-radius:99px;display:none}
+    .csb .cbadge.vis{display:block}
+    .csb.active .cbadge{background:rgba(255,255,255,.22);color:white}
+
+    /* ── CATEGORY PILLS MOBILE ── */
+    .cpill{
+      padding:5px 13px;border-radius:99px;font-size:10px;font-weight:800;
+      letter-spacing:.05em;text-transform:uppercase;border:1.5px solid #e2e8f0;
+      background:white;color:#64748b;white-space:nowrap;flex:none;cursor:pointer;
+      transition:border-color .12s,background .12s,color .12s;font-family:inherit;
+    }
+    .cpill:hover{border-color:#93c5fd;color:#1e40af}
+    .cpill.active{background:#1e40af;border-color:#1e40af;color:white}
+
+    /* ── QTY BUTTONS ── */
+    .qbtn{transition:transform .1s;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+    .qbtn:active{transform:scale(.9)}
+
+    /* ── PRINT ── */
+    .print-only{display:none}
+    @page{size:A4 portrait;margin:0}
+    @media print{
+      html,body{margin:0;padding:0;background:white;height:auto!important;overflow:visible!important;display:block!important}
+      .no-print{display:none!important}
+      .print-only{display:block!important}
+      #app,#drawer,#drawer-overlay,#mobile-bottom-bar{display:none!important}
+
+      .print-sheet{width:210mm;height:297mm;position:relative;overflow:hidden;background:white;font-family:'Plus Jakarta Sans',sans-serif;color:#111}
+      .ps-top-bar{position:absolute;top:0;left:0;right:0;height:10px;background:#0d4597}
+      .ps-right-bar{position:absolute;top:0;right:0;width:9px;bottom:0;background:#0d4597}
+      .ps-inner{position:absolute;top:10px;left:0;right:9px;bottom:0;display:grid;grid-template-columns:52mm 1fr}
+      .ps-left{padding:6mm 4mm 5mm 5mm;border-right:3px solid #0d4597;display:flex;flex-direction:column}
+      .ps-logo-wrap{display:flex;justify-content:center;margin-bottom:2mm}
+      .ps-logo-wrap img{width:24mm;height:24mm;object-fit:contain}
+      .ps-club-name{font-size:6.5pt;font-weight:800;letter-spacing:.14em;color:#0d4597;text-transform:uppercase;text-align:center;line-height:1.4;margin-bottom:4mm}
+      .ps-obs-box{border:3px solid #0d4597;padding:3mm 3mm;flex:1}
+      .ps-obs-title{font-size:7.5pt;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#0d4597;margin-bottom:2.5mm;padding-bottom:1.5mm;border-bottom:1.5px solid #0d4597}
+      .ps-obs-row{font-size:7pt;line-height:1.75;color:#1e293b}
+      .ps-obs-row b{font-weight:700;color:#0d4597}
+      .ps-date{margin-top:4mm;font-size:6.5pt;color:#64748b;font-style:italic}
+      .ps-right{padding:5mm 5mm 4mm 5mm;display:flex;flex-direction:column}
+      .ps-header-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3.5mm;padding-bottom:2.5mm;border-bottom:2.5px solid #0d4597}
+      .ps-num{font-family:'Cormorant Garamond',serif;font-size:20pt;font-weight:700;color:#0d4597;letter-spacing:.04em;line-height:1}
+      .ps-num-label{font-size:6.5pt;font-weight:700;letter-spacing:.22em;color:#94a3b8;text-transform:uppercase;text-align:right}
+      .ps-menu{flex:1;display:flex;flex-direction:column;gap:3mm}
+      .ps-cat-title{font-family:'Cormorant Garamond',serif;font-size:11pt;font-weight:700;font-style:italic;color:#0d4597;letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid #cbd5e1;padding-bottom:.8mm;margin-bottom:1.5mm;line-height:1}
+      .ps-cat-item{font-size:7.8pt;color:#1e293b;line-height:1.6;padding-left:2.5mm}
+      .ps-cat-item-qty{color:#64748b;font-size:7pt}
+      .ps-footer{margin-top:auto;padding-top:3mm;border-top:2.5px solid #0d4597}
+      .ps-valor{font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:700;color:#0d4597;letter-spacing:.04em;text-align:center;line-height:1.2}
+      .ps-totals-row{display:flex;justify-content:space-between;font-size:7pt;color:#64748b;margin-top:2mm}
+      .ps-totals-row strong{color:#1e293b;font-size:7.5pt}
+    }
+
+    /* ── MISC ── */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+    input[type=number]{-moz-appearance:textfield}
+    input{font-family:'Plus Jakarta Sans',sans-serif}
+    button{font-family:'Plus Jakarta Sans',sans-serif}
+
+    /* Distribute bar */
+    #distribute-bar{
+      flex:none;
+      display:none;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      padding:10px 16px;
+      background:#eff6ff;
+      border-bottom:1px solid #bfdbfe;
+    }
+    #distribute-bar.active{display:flex}
+
+    /* Fields toggle */
+    #fields-row{display:grid;gap:5px;padding:7px 12px 10px;grid-template-columns:repeat(2,1fr)}
+    @media(min-width:640px){#fields-row{grid-template-columns:repeat(4,1fr)}}
+    @media(min-width:1024px){#fields-row{grid-template-columns:repeat(8,1fr)}}
+    .finput{
+      padding:5px 10px;font-size:11px;border:1.5px solid #e2e8f0;border-radius:8px;
+      outline:none;background:white;color:#334155;width:100%;
+      transition:border-color .12s;
+    }
+    .finput:focus{border-color:#93c5fd}
+    .finput::placeholder{color:#94a3b8}
   </style>
 </head>
 <body>
-  <div class="bg-watermark no-print"></div>
-  <div class="app-shell">
-    <header class="px-4 md:px-8 pt-5 md:pt-8 pb-4 border-b border-slate-100 no-print bg-white/95 sticky top-0 z-20 backdrop-blur-sm">
-      <div class="flex items-center gap-4 mb-5"><img src="./logo2.jpg" alt="Logo" class="w-16 h-16 md:w-20 md:h-20 object-contain shrink-0" onerror="this.style.display='none'"><div class="min-w-0"><h1 class="text-lg md:text-2xl font-black tracking-tight text-slate-900 leading-tight truncate">CLUB DE SUBOFICIALES</h1><p class="text-[10px] md:text-xs font-extrabold text-blue-800 uppercase tracking-widest opacity-80">Cotizador de Eventos 2026</p></div></div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4"><input id="field-socio" placeholder="Socio" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-rut" placeholder="RUT" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-telefono" placeholder="Teléfono" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-tipo" placeholder="Tipo evento" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-fecha" placeholder="Fecha" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-hora" placeholder="Hora" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-salon" placeholder="Salón" value="Azul y Terraza" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"><input id="field-pago" placeholder="Forma de pago" class="px-4 py-3 rounded-2xl border border-slate-200 text-sm outline-none w-full"></div>
-      <div class="bg-slate-900 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-6 text-white shadow-xl"><div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5"><div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">N° de Invitados</p><div class="flex items-center gap-4"><button onclick="changePeople(-5)" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg font-bold">-</button><input type="number" id="people-count" value="50" onchange="updateUI()" class="bg-transparent text-2xl font-black w-20 text-center outline-none border-b border-white/20"><button onclick="changePeople(5)" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-lg font-bold">+</button></div></div><div class="text-left md:text-right"><p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Presupuesto Neto</p><p id="header-total" class="text-2xl md:text-3xl font-black text-blue-400">$0</p><p class="text-[10px] text-slate-300 mt-1">Valor por persona: <span id="header-pp" class="font-black">$0</span></p></div></div></div>
-    </header>
-    <nav class="bg-white/95 border-b border-slate-100 no-print"><div id="category-container" class="flex overflow-x-auto px-4 md:px-8 py-3 gap-2 category-scroll whitespace-nowrap"></div></nav>
-    <main class="px-4 md:px-8 py-4 md:py-6 pb-44 no-print"><div class="grid grid-cols-1 xl:grid-cols-[1.25fr_.75fr] gap-4 md:gap-6"><section class="min-w-0"><div class="flex items-center justify-between mb-3 gap-3 flex-wrap"><h2 class="text-sm md:text-base font-black uppercase tracking-widest text-slate-500">Productos</h2><button onclick="distributeCurrentCategoryToGuests()" class="bg-blue-50 text-blue-900 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">Repartir categoría actual</button></div><div id="product-list" class="space-y-3 md:grid md:grid-cols-2 xl:grid-cols-1 md:gap-3"></div></section><aside class="no-print bg-white rounded-[1.5rem] border border-slate-100 shadow-sm p-4 md:p-5 h-fit sticky top-6"><div class="flex justify-between items-center mb-3 gap-3"><div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor por persona</p><p id="total-per-person" class="text-2xl font-black text-slate-900">$0</p></div><button onclick="toggleDrawer()" class="bg-slate-100 text-slate-900 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-tighter flex items-center gap-2 shrink-0"><span id="badge-count" class="bg-blue-900 text-white w-5 h-5 rounded-full flex items-center justify-center text-[9px]">0</span> items</button></div><button onclick="window.print()" class="w-full bg-blue-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs mb-3">Generar Propuesta PDF</button><div class="text-xs text-slate-500 leading-6">El presupuesto se calcula por persona, pero cada categoría mantiene su subtotal separado.</div></aside></div></main>
+
+<div id="app">
+
+  <!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+  <header id="app-header" class="no-print">
+
+    <!-- Top row: logo | guest counter | totals | actions -->
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f1f5f9">
+
+      <!-- Logo -->
+      <img src="./logo2.jpg" alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:8px;flex:none" onerror="this.style.display='none'">
+
+      <!-- Title (hidden on very small screens) -->
+      <div style="min-width:0;flex:1" class="hidden sm:block">
+        <p style="font-size:11px;font-weight:900;color:#0f172a;letter-spacing:-.01em;text-transform:uppercase;line-height:1.2">Club de Suboficiales</p>
+        <p style="font-size:9px;font-weight:700;color:#1e40af;letter-spacing:.12em;text-transform:uppercase;line-height:1.4">Cotizador de Eventos 2026</p>
+      </div>
+
+      <!-- Spacer -->
+      <div style="flex:1"></div>
+
+      <!-- Guest counter -->
+      <div style="display:flex;align-items:center;gap:7px">
+        <button onclick="changePeople(-5)" class="qbtn" style="width:28px;height:28px;border-radius:50%;background:#f1f5f9;color:#475569;font-size:14px;font-weight:900">−</button>
+        <div style="text-align:center">
+          <p style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;line-height:1;margin-bottom:2px">Invitados</p>
+          <input type="number" id="people-count" value="50" onchange="updateUI()" style="background:transparent;font-size:19px;font-weight:900;color:#0f172a;width:52px;text-align:center;border:none;outline:none">
+        </div>
+        <button onclick="changePeople(5)" class="qbtn" style="width:28px;height:28px;border-radius:50%;background:#f1f5f9;color:#475569;font-size:14px;font-weight:900">+</button>
+      </div>
+
+      <!-- Separator -->
+      <div class="hidden md:block" style="width:1px;height:28px;background:#e2e8f0;margin:0 2px"></div>
+
+      <!-- Per-person value -->
+      <div class="hidden md:block" style="text-align:right">
+        <p style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;line-height:1;margin-bottom:2px">Por persona</p>
+        <p id="header-pp" style="font-size:17px;font-weight:900;color:#0f172a;line-height:1">$0</p>
+      </div>
+
+      <!-- Total event -->
+      <div style="text-align:right">
+        <p style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;line-height:1;margin-bottom:2px">Total evento</p>
+        <p id="header-total" style="font-size:17px;font-weight:900;color:#1e40af;line-height:1">$0</p>
+      </div>
+
+      <!-- PDF button (desktop only) -->
+      <button onclick="window.print()" id="pdf-btn-hd" class="hidden lg:flex" style="align-items:center;gap:7px;background:#1e40af;color:white;border:none;padding:8px 15px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;letter-spacing:.04em">
+        <i class="fas fa-file-pdf"></i> Propuesta PDF
+      </button>
+
+      <!-- Cart button (mobile only) -->
+      <button onclick="toggleDrawer()" class="lg:hidden" style="position:relative;width:34px;height:34px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none">
+        <i class="fas fa-shopping-cart" style="color:#475569;font-size:12px"></i>
+        <span id="badge-count" style="position:absolute;top:-3px;right:-3px;background:#1e40af;color:white;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900">0</span>
+      </button>
+    </div>
+
+    <!-- Fields row -->
+    <div id="fields-row">
+      <input id="field-socio"    class="finput" placeholder="Socio">
+      <input id="field-rut"      class="finput" placeholder="RUT">
+      <input id="field-telefono" class="finput" placeholder="Teléfono">
+      <input id="field-tipo"     class="finput" placeholder="Tipo de evento">
+      <input id="field-fecha"    class="finput" placeholder="Fecha">
+      <input id="field-hora"     class="finput" placeholder="Hora">
+      <input id="field-salon"    class="finput" placeholder="Salón" value="Azul y Terraza">
+      <input id="field-pago"     class="finput" placeholder="Forma de pago">
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════ APP BODY ═══════════════════════════ -->
+  <div id="app-body" class="no-print">
+
+    <!-- ── LEFT SIDEBAR: Categories (desktop) ── -->
+    <aside id="cat-sidebar">
+      <div style="padding:10px 10px 6px;border-bottom:1px solid #f1f5f9">
+        <p style="font-size:8.5px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em">Categorías</p>
+      </div>
+      <div id="category-container" class="scroll-y" style="flex:1;padding:6px 6px"></div>
+      <div style="padding:8px;border-top:1px solid #f1f5f9">
+        <button id="distribute-toggle-btn" onclick="distributeCurrentCategoryToGuests()" style="width:100%;background:#eff6ff;color:#1e40af;border:none;padding:8px 6px;border-radius:10px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <i class="fas fa-layer-group"></i>Agrupar categoría
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── CENTER PANEL ── -->
+    <section id="center-panel">
+
+      <!-- Mobile category bar -->
+      <div id="mobile-cat-bar"></div>
+
+      <!-- Distribute bar -->
+      <div id="distribute-bar">
+        <i class="fas fa-object-group" style="color:#1e40af;font-size:13px;flex:none"></i>
+        <p id="distribute-hint" style="font-size:11px;color:#1e40af;font-weight:700;flex:1;min-width:0">Selecciona los productos que quieres agrupar</p>
+        <button id="distribute-btn-main" onclick="distributeSelected_exec()" disabled style="background:#cbd5e1;color:#94a3b8;border:none;padding:7px 14px;border-radius:9px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:not-allowed;white-space:nowrap">
+          Agrupar
+        </button>
+      </div>
+
+      <!-- Products section label + mobile group btn -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px 7px;background:white;border-bottom:1px solid #f1f5f9;flex:none">
+        <h2 id="current-cat-label" style="font-size:10px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:.14em"></h2>
+        <button id="distribute-toggle-btn-mobile" onclick="distributeCurrentCategoryToGuests()" class="lg:hidden" style="background:#eff6ff;color:#1e40af;border:none;padding:5px 12px;border-radius:8px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;gap:5px">
+          <i class="fas fa-layer-group" style="font-size:9px"></i>Agrupar
+        </button>
+      </div>
+
+      <!-- Product scrollable area -->
+      <div id="products-scroll" class="scroll-y">
+        <div id="product-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px"></div>
+      </div>
+    </section>
+
+    <!-- ── CART / DRAWER ── -->
+    <div id="drawer">
+      <!-- Handle (mobile only) -->
+      <div id="drawer-handle" style="width:44px;height:4px;background:#e2e8f0;border-radius:99px;margin:10px auto 0;flex:none"></div>
+
+      <!-- Drawer header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f1f5f9;flex:none">
+        <div>
+          <h3 style="font-size:14px;font-weight:900;color:#0f172a;line-height:1.2">Carrito</h3>
+          <p style="font-size:9.5px;color:#94a3b8;margin-top:1px">Cálculo por persona · <span id="badge-count-desktop" style="font-weight:800;color:#1e40af">0 items</span></p>
+        </div>
+        <button onclick="clearCart()" style="font-size:9.5px;font-weight:800;color:#ef4444;text-transform:uppercase;letter-spacing:.08em;background:none;border:none;cursor:pointer">Limpiar</button>
+      </div>
+
+      <!-- Cart items -->
+      <div id="cart-items" class="scroll-y" style="flex:1;padding:12px 14px;overflow-y:auto"></div>
+
+      <!-- Cart footer -->
+      <div style="padding:12px 14px;border-top:1px solid #f1f5f9;background:white;flex:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:9.5px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Unidades p/p</span>
+          <span id="drawer-units" style="font-size:12px;font-weight:900;color:#475569">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:9.5px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Por persona</span>
+          <span id="drawer-average" style="font-size:14px;font-weight:900;color:#0f172a">$0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;padding-top:8px;border-top:1px solid #f1f5f9">
+          <span style="font-size:9.5px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Total evento</span>
+          <span id="drawer-total" style="font-size:22px;font-weight:900;color:#1e40af">$0</span>
+        </div>
+        <button onclick="window.print()" style="width:100%;background:#1e40af;color:white;border:none;padding:11px;border-radius:12px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.04em">
+          <i class="fas fa-file-pdf"></i>Generar Propuesta PDF
+        </button>
+      </div>
+    </div>
   </div>
-  <div id="drawer-overlay" class="fixed inset-0 bg-slate-900/40 z-50 hidden" onclick="toggleDrawer()"></div>
-  <div id="drawer" class="fixed bottom-0 left-0 right-0 z-[60] max-w-full md:max-w-4xl lg:max-w-6xl mx-auto bg-white transform translate-y-full transition-transform duration-300 rounded-t-[2rem] md:rounded-t-[2.5rem] shadow-2xl no-print h-[85vh] flex flex-col"><div class="w-14 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-4"></div><div class="px-4 md:px-6 pb-4 border-b border-slate-100 flex items-center justify-between gap-3"><div><h3 class="text-lg md:text-2xl font-black text-slate-900">Resumen Detalle</h3><p class="text-xs text-slate-500">Subtotales por categoría y cálculo por persona.</p></div><button onclick="clearCart()" class="text-red-500 text-[10px] font-black uppercase tracking-widest">Limpiar</button></div><div id="cart-items" class="flex-1 overflow-y-auto drawer-scroll px-4 md:px-6 py-4 space-y-4"></div><div class="px-4 md:px-6 py-4 border-t border-slate-100 space-y-2 bg-white"><div class="flex justify-between items-center text-sm"><span class="text-slate-500 font-bold uppercase tracking-widest">Unidades Totales</span><span id="drawer-units" class="font-black text-slate-900">0</span></div><div class="flex justify-between items-center text-sm"><span class="text-slate-500 font-bold uppercase tracking-widest">Valor por persona</span><span id="drawer-average" class="font-black text-slate-900">$0</span></div><div class="flex justify-between items-center"><span class="text-slate-500 font-bold text-sm uppercase tracking-widest">Total Estimado</span><span id="drawer-total" class="text-2xl md:text-3xl font-black text-blue-900">$0</span></div></div></div>
-  <div class="print-only print-sheet"><div class="print-background"></div><div class="print-content p-5 md:p-8"><div class="print-grid grid grid-cols-1 md:grid-cols-[56mm_1fr] gap-4 md:gap-6 pt-4 pr-4 relative z-10"><aside class="print-left"><div class="flex justify-center mb-4"><img src="./logo2.jpg" alt="Logo" class="w-24 h-24 md:w-28 md:h-28 object-contain" onerror="this.style.display='none'"></div><div class="print-obs border-4 border-[#0d4597] p-3 md:p-4 bg-white/75 backdrop-blur-[1px]"><p class="font-black uppercase tracking-widest text-[13px] md:text-[15px] mb-3">Observaciones</p><div class="space-y-2 text-[11px] md:text-[13px] leading-5"><p>• Socio : <span id="print-socio"></span></p><p>• Rut : <span id="print-rut"></span></p><p>• Teléfono : <span id="print-telefono"></span></p><p>• Tipo evento : <span id="print-tipo"></span></p><p>• Fecha : <span id="print-fecha"></span></p><p>• Hora : <span id="print-hora"></span></p><p>• N° De Personas : <span id="print-people-obs"></span></p><p>• Salón : <span id="print-salon"></span></p><p>• Forma de pago : <span id="print-pago"></span></p><p>• Otros :</p></div></div></aside><section class="print-right pr-2 md:pr-4"><div class="flex justify-between items-start mb-5 md:mb-6 pt-1"><h1 class="print-title text-[16px] md:text-[20pt] font-black tracking-[0.14em]">PRESUPUESTO N° <span id="print-number-main">1</span></h1><p class="text-[12px] md:text-[14pt] font-black tracking-[0.2em]">PRESUPUESTO N°</p></div><div id="print-grouped-list" class="text-slate-900 space-y-3 md:space-y-4"></div><div class="mt-8 md:mt-10 text-center"><p class="text-[14px] md:text-[18pt] font-black tracking-[0.22em] uppercase">VALOR POR PERSONA: <span id="print-pp-value">$0</span></p></div></section></div></div></div>
-  <script>
-    const DATABASE={"Postres":[{id:352,n:"Almendrado",p:3000},{id:353,n:"Celestino con helado",p:2100},{id:449,n:"Crema calatana",p:1900},{id:354,n:"Leche asada",p:1600},{id:459,n:"Mousse de chocolate vegano",p:2000},{id:355,n:"Pana cotta de café",p:2000},{id:356,n:"Pana cotta de manjar",p:1800},{id:357,n:"Suspiro berries",p:2500},{id:447,n:"Turron de vino tinto",p:1500}],"Aperitivos":[{id:366,n:"Amareto sour",p:1200},{id:371,n:"Bebida en lata c/a",p:1350},{id:372,n:"Bebida en lata s/a",p:1350},{id:367,n:"Espumante demi sec aperitivo",p:900},{id:368,n:"Jugo natural de chirimolla aperitivo",p:1200},{id:406,n:"Jugo natural de frambuesa aperitivo",p:1200},{id:407,n:"Jugo natural de mango aperitivo",p:1200},{id:369,n:"Mango sour aperitivo",p:1200},{id:370,n:"Pisco sour aperitivo",p:1200},{id:192,n:"Ramazzotti",p:4400},{id:178,n:"Aperol",p:3400},{id:85,n:"Agua con gas",p:700},{id:86,n:"Agua sin gas",p:700}],"Sandwich":[{id:365,n:"Ave italiano sanwich",p:4400},{id:22,n:"Barros luco sanwich",p:5100},{id:364,n:"Chacarero sandwich",p:4100},{id:363,n:"Churrasco italiano sandwich",p:4800},{id:389,n:"Tapadito ave pimentón",p:700},{id:390,n:"Tapadito salame queso crema y aceitunas",p:700}],"Cóctel":[{id:303,n:"Brocheta camaron al ajillo",p:1000},{id:314,n:"Brocheta camaron camaron salsa teriyaki",p:900},{id:304,n:"Brocheta carne salsa demi glase",p:2000},{id:305,n:"Brocheta de ave bbq",p:800},{id:306,n:"Brocheta mixta ave carne sals oriental",p:2000},{id:443,n:"Brocheta tomate cherry y queso de cabra",p:200},{id:448,n:"Camaron apanado en salsa golf",p:500},{id:442,n:"Ceviche de champignon coctel",p:500},{id:308,n:"Ceviche de reineta camaron",p:1100},{id:307,n:"cheviche de reineta coctel",p:700},{id:309,n:"Ceviche de salmón coctel",p:1000},{id:310,n:"Ceviche mixto reineta y salmón coctel",p:1500},{id:403,n:"Crostini tomate baby pesto de albahaca cebolla caramelizada",p:700},{id:311,n:"Crostini palmitos y mix de vegetales",p:400},{id:315,n:"Crostini salmón ahumado",p:1200},{id:312,n:"Empanadas de queso coctel",p:500},{id:313,n:"Mini albondigas en salsa de vino tinto dulce",p:600},{id:450,n:"Mini carpccio de zuquini",p:600},{id:316,n:"Mini carpccio de salmon ahumado",p:1300}],"Entradas Eventos":[{id:320,n:"Ceviche de champignon entrada",p:2200},{id:451,n:"Ceviche de quinoa",p:1500},{id:317,n:"Ceviche de reineta entrada",p:4500},{id:318,n:"Ceviche mixto reineta y salmón entrada",p:5600},{id:457,n:"Crepe relleno de espinaca champiñon queso mantecoso",p:2400},{id:321,n:"Crepes de ave cholo entrada",p:2500},{id:322,n:"Crepe espinca choclo entrada",p:2100},{id:460,n:"Tartar de palmitos y palta",p:2500},{id:323,n:"Timbal jamón palta entrada",p:2600},{id:324,n:"Timbal jamón tomate choclo entrada",p:2000},{id:325,n:"Timbal palta camarón entrada",p:4300},{id:326,n:"Timbal palta reina entrada",p:3100},{id:458,n:"Trilogia de causas limeñas",p:3400}],"Principales":[{id:455,n:"Champiñones rellenos de ratatouille a la parmesana",p:3200},{id:327,n:"Filete de res principal",p:9500},{id:328,n:"Lomo de res principal",p:8200},{id:329,n:"Lomo saltado principal",p:8300},{id:373,n:"Menu niño",p:8800},{id:332,n:"Pechuga de ave rellena principal",p:5300},{id:330,n:"Pollo a la plancha principal",p:4300},{id:331,n:"Salmón a la mantequilla",p:12600},{id:408,n:"Suprema de ave apanada niños",p:3800},{id:334,n:"Vegetariano om. cham. queso principal",p:3800},{id:333,n:"Vegetariano principal",p:3300},{id:335,n:"Verduras salteadas papas rusticas principal",p:2800}],"Acompañamientos":[{id:463,n:"Cremoso de quinoa",p:1500},{id:456,n:"Hummus de garbanzos",p:800},{id:444,n:"Lasaña de verduras",p:1600},{id:336,n:"Papas al ajillo acompañamiento",p:1100},{id:337,n:"Papas al romero acompañamiento",p:1000},{id:338,n:"Papas duquesas acompañamiento",p:1000},{id:438,n:"Pastelera de choclo con verduras salteadas",p:2000},{id:405,n:"Pastelera de choclo",p:2300},{id:339,n:"Pure rustico acompañamiento",p:1100},{id:340,n:"Risotto al vino tinto acompañamiento",p:1300},{id:341,n:"Risotto de champiñon acompañamiento",p:1900},{id:402,n:"Risotto de verduras",p:1800},{id:421,n:"Verduras salteadas y papas al ajillo acompañamiento",p:1100},{id:342,n:"Verduras salteadas acompañamiento",p:1700}],"Salsas":[{id:343,n:"Salsa de champiñon blanca",p:1500},{id:350,n:"Salsa de champiñon española",p:1700},{id:42,n:"Salsa de alcaparras",p:1600},{id:344,n:"Salsa finas hierbas",p:900},{id:446,n:"Salsa latte harvest",p:300},{id:345,n:"Salsa migñon champiñon",p:800},{id:346,n:"Salsa mostaza",p:500},{id:347,n:"Salsa pimienta blanca",p:400},{id:351,n:"Salsa pimienta española",p:600},{id:348,n:"Salsa queso azul roquefort",p:1100},{id:349,n:"Salsa vino tinto dulce",p:400}],"Servicio Coffe":[{id:391,n:"Café",p:700},{id:441,n:"Café grande",p:500},{id:360,n:"Café sachet",p:400},{id:359,n:"Té de hierbas servicio",p:600},{id:392,n:"Té",p:100},{id:361,n:"Té servicio",p:200}],"Decoraciones":[{id:454,n:"Crocante de queso",p:300},{id:464,n:"Crujiente de arroz",p:300},{id:462,n:"Tuile",p:300}],"Dressing":[{id:452,n:"Dressing de mango",p:500},{id:461,n:"Dressing de pimientos asados",p:400}],"Bebestible Cena":[{id:371,n:"Bebida en lata c/a cena",p:1350},{id:372,n:"Bebida en lata s/a cena",p:1350},{id:368,n:"Jugo natural de chirimolla cena",p:1200},{id:406,n:"Jugo natural de frambuesa cena",p:1200},{id:407,n:"Jugo natural de mango cena",p:1200},{id:85,n:"Agua con gas cena",p:700},{id:86,n:"Agua sin gas cena",p:700},{id:132,n:"Copa de vino santa emiliana cena",p:1200},{id:124,n:"Copa de vino carmen margoux cena",p:1400}]};let currentCat='Postres',cart=[],isDrawerOpen=false;const catOrder=['Postres','Aperitivos','Sandwich','Cóctel','Entradas Eventos','Principales','Acompañamientos','Salsas','Servicio Coffe','Decoraciones','Dressing','Bebestible Cena'];const fmt=v=>`$${Math.round(v).toLocaleString('es-CL')}`;const people=()=>Math.max(parseInt(document.getElementById('people-count').value)||1,1);const gv=id=>document.getElementById(id)?.value?.trim()||'';const keyOf=(id,cat)=>`${id}__${cat}`; const grouped=()=>cart.reduce((a,i)=>((a[i.cat]??=[]).push(i),a),{});const label=cat=>cat.toUpperCase();function updateUI(){const p=people();const itemsTotal=cart.reduce((s,i)=>s+i.p*i.qty,0);const finalTotal=itemsTotal;const avg=cart.length?finalTotal/p:0;document.getElementById('category-container').innerHTML=catOrder.map(cat=>`<button onclick="setCat('${cat}')" class="px-4 py-2 rounded-2xl text-[11px] font-bold uppercase tracking-widest ${cat===currentCat?'pill-active':'bg-white text-slate-400 border border-slate-100'}">${cat}</button>`).join('');document.getElementById('product-list').innerHTML=(DATABASE[currentCat]||[]).map(item=>{const inCart=cart.find(c=>c.id===item.id&&c.cat===currentCat);return `<div onclick="toggleItem(${item.id}, '${item.n.replace(/'/g,"\\'")}', ${item.p}, '${currentCat.replace(/'/g,"\\'")}')" class="product-card rounded-3xl p-4 md:p-5 flex justify-between items-center ${inCart?'product-selected':''}"><div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 rounded-2xl flex items-center justify-center ${inCart?'bg-blue-900 text-white':'bg-slate-100 text-slate-300'}"><i class="fa-solid ${inCart?'fa-check':'fa-plus'}"></i></div><div class="min-w-0"><p class="font-bold text-sm text-slate-800 break-words">${item.n}</p><p class="text-[9px] text-slate-400 font-bold uppercase mt-1">${inCart?`Cantidad: ${inCart.qty}`:'Agregar con cantidad de invitados'}</p></div></div><p class="font-black text-blue-900 pl-3 whitespace-nowrap">${fmt(item.p)}</p></div>`;}).join('');document.getElementById('header-total').innerText=fmt(finalTotal);document.getElementById('header-pp').innerText=fmt(avg);document.getElementById('total-per-person').innerText=fmt(avg);document.getElementById('badge-count').innerText=cart.length;document.getElementById('drawer-total').innerText=fmt(finalTotal);document.getElementById('drawer-average').innerText=fmt(avg);document.getElementById('drawer-units').innerText=cart.reduce((s,i)=>s+i.qty,0).toLocaleString('es-CL');document.getElementById('print-pp-value').innerText=fmt(avg);['socio','rut','telefono','tipo','fecha','hora','salon','pago'].forEach(k=>{const el=document.getElementById('print-'+(k==='salon'?'salon':k));if(el)el.innerText=gv('field-'+k)});document.getElementById('print-people-obs').innerText=p;document.getElementById('print-grouped-list').innerHTML=Object.entries(grouped()).map(([cat,items])=>`<div class="print-section"><h3 class="text-[15px] md:text-[17pt] font-black tracking-[0.16em] uppercase mb-1">${label(cat)}:</h3><div class="serif text-[11pt] md:text-[13pt] leading-5 md:leading-6 pl-1">${items.map(i=>`<p class="print-item">01 ${i.n}</p>`).join('')}</div></div>`).join('')||'<p class="text-slate-400 italic">Sin productos seleccionados.</p>';document.getElementById('cart-items').innerHTML=Object.entries(grouped()).map(([cat,items])=>{const sub=items.reduce((s,i)=>s+i.p*i.qty,0),units=items.reduce((s,i)=>s+i.qty,0);return `<div class="space-y-3 border border-slate-100 rounded-3xl p-4"><div class="flex justify-between items-start gap-3"><div><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Categoría</p><p class="font-black text-slate-900">${cat}</p></div><div class="text-right"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Subtotal grupo</p><p class="font-black text-blue-900">${fmt(sub)}</p><p class="text-[10px] text-slate-500">${units} unidades</p></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><button onclick="distributeCategoryByName('${cat.replace(/'/g,"\\'")}')" class="bg-blue-50 text-blue-900 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">Repartir ${cat}</button><button onclick="equalizeCategoryByName('${cat.replace(/'/g,"\\'")}')" class="bg-slate-100 text-slate-900 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest">Igualar ${cat}</button></div>${items.map(i=>`<div class="bg-slate-50 rounded-2xl p-4 border border-slate-100"><div class="flex justify-between gap-3"><div class="min-w-0"><p class="font-bold text-sm break-words">${i.n}</p><p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Unitario ${fmt(i.p)} · Subtotal ${fmt(i.p*i.qty)}</p></div><button onclick="removeItem(${i.id})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button></div><div class="flex items-center justify-between gap-3 mt-3 flex-wrap"><div class="flex items-center gap-2 bg-white rounded-full border border-slate-200 p-1"><button onclick="event.stopPropagation(); changeQty(${i.id}, -1)" class="qty-btn w-9 h-9 rounded-full bg-slate-100">-</button><input type="number" min="1" value="${i.qty}" onchange="setQty(${i.id}, this.value)" class="w-16 text-center bg-transparent outline-none font-black"><button onclick="event.stopPropagation(); changeQty(${i.id}, 1)" class="qty-btn w-9 h-9 rounded-full bg-blue-900 text-white">+</button></div><button onclick="setQty(${i.id}, people())" class="text-[10px] uppercase tracking-widest font-black text-blue-900 bg-blue-50 px-3 py-2 rounded-full">Igualar a invitados</button></div></div>`).join('')}</div>`;}).join('')||'<div class="text-slate-400 text-sm">Aún no has agregado productos.</div>';}function setCat(cat){currentCat=cat;updateUI()}function changePeople(val){const i=document.getElementById('people-count');i.value=Math.max(1,(parseInt(i.value)||1)+val);updateUI()}function toggleItem(id,n,p,cat){const idx=cart.findIndex(c=>c.id===id&&c.cat===cat);if(idx>-1)cart.splice(idx,1);else cart.push({id,n,p,cat,qty:people()});updateUI()}function removeItem(id){cart=cart.filter(x=>x.id!==id);updateUI()}function changeQty(id,delta){cart=cart.map(x=>x.id!==id?x:{...x,qty:Math.max(1,x.qty+delta)});updateUI()}function setQty(id,value){cart=cart.map(x=>x.id===id?{...x,qty:Math.max(1,parseInt(value)||1)}:x);updateUI()}function equalizeCategoryByName(cat){const p=people();cart=cart.map(x=>x.cat===cat?{...x,qty:p}:x);updateUI()}function distributeCategoryByName(cat){const p=people();const g=cart.filter(x=>x.cat===cat);const c=g.length;if(!c)return;const base=Math.floor(p/c),rem=p%c;let k=0;cart=cart.map(x=>x.cat!==cat?x:{...x,qty:base+(k++<rem?1:0)});updateUI()}function distributeCurrentCategoryToGuests(){distributeCategoryByName(currentCat)}function clearCart(){cart=[];updateUI()}function toggleDrawer(){isDrawerOpen=!isDrawerOpen;document.getElementById('drawer').style.transform=isDrawerOpen?'translateY(0)':'translateY(100%)';document.getElementById('drawer-overlay').classList.toggle('hidden',!isDrawerOpen)}function fitPrint(){const el=document.querySelector('.print-content');if(!el)return;el.style.transform='scale(1)';el.style.width='100%';el.style.setProperty('--print-scale','1');requestAnimationFrame(()=>{const pageW=210-10,pageH=297-10,rect=el.getBoundingClientRect(),scale=Math.min(1,pageW/rect.width,pageH/rect.height);el.style.setProperty('--print-scale',String(scale))})}document.addEventListener('input',e=>{if(e.target&&e.target.id&&e.target.id.startsWith('field-'))updateUI()});window.addEventListener('beforeprint',fitPrint);window.addEventListener('load',()=>{updateUI();setTimeout(fitPrint,250)});
-  </script>
+
+  <!-- ═══════════════════════════ MOBILE BOTTOM BAR ═══════════════════════════ -->
+  <div id="mobile-bottom-bar" class="no-print">
+    <div>
+      <p style="font-size:8px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;line-height:1;margin-bottom:3px">Por persona</p>
+      <p id="total-per-person" style="font-size:20px;font-weight:900;color:#0f172a;line-height:1">$0</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="window.print()" style="display:flex;align-items:center;gap:6px;background:#f1f5f9;color:#475569;border:none;padding:9px 14px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer">
+        <i class="fas fa-file-pdf"></i>PDF
+      </button>
+      <button onclick="toggleDrawer()" style="display:flex;align-items:center;gap:8px;background:#1e40af;color:white;border:none;padding:9px 16px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer">
+        <span style="background:white;color:#1e40af;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900" id="badge-count-2">0</span>
+        Carrito
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer overlay (mobile) -->
+<div id="drawer-overlay" class="hidden no-print" onclick="toggleDrawer()" style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;backdrop-filter:blur(2px)"></div>
+
+<!-- ═══════════════════════════ PRINT SHEET ═══════════════════════════ -->
+<div class="print-only">
+  <div class="print-sheet">
+    <div class="ps-top-bar"></div>
+    <div class="ps-right-bar"></div>
+    <div class="ps-inner">
+      <div class="ps-left">
+        <div class="ps-logo-wrap">
+          <img src="./logo2.jpg" alt="Logo" onerror="this.style.display='none'">
+        </div>
+        <div class="ps-club-name">Club de Suboficiales<br>Cotizador de Eventos 2026</div>
+        <div class="ps-obs-box">
+          <div class="ps-obs-title">Observaciones</div>
+          <div class="ps-obs-row">
+            <p>¨ Socio : <b><span id="print-socio"></span></b></p>
+            <p>¨ Rut : <span id="print-rut"></span></p>
+            <p>¨ Teléfono : <span id="print-telefono"></span></p>
+            <p>¨ Tipo evento : <span id="print-tipo"></span></p>
+            <p>¨ Fecha : <span id="print-fecha"></span></p>
+            <p>¨ Hora : <span id="print-hora"></span></p>
+            <p>¨ N° De Personas : <b><span id="print-people-obs"></span></b></p>
+            <p>¨ Salón : <span id="print-salon"></span></p>
+            <p>¨ Forma de pago : <span id="print-pago"></span></p>
+            <p>¨ Otros :</p>
+          </div>
+        </div>
+        <div class="ps-date" id="print-date"></div>
+      </div>
+      <div class="ps-right">
+        <div class="ps-header-row">
+          <div class="ps-num">PRESUPUESTO N°&nbsp;<span id="print-number-main">1</span></div>
+          <div class="ps-num-label">Propuesta<br>de eventos</div>
+        </div>
+        <div class="ps-menu" id="print-menu-content"></div>
+        <div class="ps-footer">
+          <div class="ps-valor">VALOR POR PERSONA: <span id="print-pp-value">$0</span></div>
+          <div class="ps-totals-row">
+            <span>Total general: <strong id="print-total-general">$0</strong></span>
+            <span>N° personas: <strong id="print-people-footer"></strong></span>
+            <span>Items: <strong id="print-items-count"></strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const DATABASE={
+    "Aperitivos":[
+      {id:366,n:"Amareto sour",p:1500},
+      {id:371,n:"Bebida en lata c/a",p:1400},
+      {id:372,n:"Bebida en lata s/a",p:1300},
+      {id:367,n:"Espumante demi sec aperitivo",p:900},
+      {id:368,n:"Jugo natural de chirimoya aperitivo",p:1200},
+      {id:406,n:"Jugo natural de frambuesa aperitivo",p:1200},
+      {id:407,n:"Jugo natural de mango aperitivo",p:1000},
+      {id:369,n:"Mango sour aperitivo",p:1000},
+      {id:370,n:"Pisco sour aperitivo",p:900},
+      {id:192,n:"Ramazzotti",p:4400},
+      {id:178,n:"Aperol",p:3400},
+      {id:85,n:"Agua con gas",p:700},
+      {id:86,n:"Agua sin gas",p:700}
+    ],
+    "Cóctel":[
+      {id:303,n:"Brocheta camarón al ajillo",p:1000},
+      {id:314,n:"Brocheta camarón salsa teriyaki",p:900},
+      {id:304,n:"Brocheta carne salsa demi glase",p:2000},
+      {id:305,n:"Brocheta de ave bbq",p:800},
+      {id:306,n:"Brocheta mixta ave carne salsa oriental",p:2000},
+      {id:443,n:"Brocheta tomate cherry y queso de cabra",p:200},
+      {id:448,n:"Camarón apanado en salsa golf",p:500},
+      {id:442,n:"Ceviche de champiñón cóctel",p:500},
+      {id:308,n:"Ceviche de reineta camarón",p:1100},
+      {id:307,n:"Ceviche de reineta cóctel",p:700},
+      {id:309,n:"Ceviche de salmón cóctel",p:1000},
+      {id:310,n:"Ceviche mixto reineta y salmón cóctel",p:1500},
+      {id:403,n:"Crostini tomate baby pesto albahaca cebolla caramelizada",p:700},
+      {id:311,n:"Crostini palmitos y mix de vegetales",p:400},
+      {id:315,n:"Crostini salmón ahumado",p:1200},
+      {id:312,n:"Empanadas de queso cóctel",p:500},
+      {id:313,n:"Mini albóndigas en salsa de vino tinto dulce",p:600},
+      {id:450,n:"Mini carpaccio de zucchini",p:600},
+      {id:316,n:"Mini carpaccio de salmón ahumado",p:1300}
+    ],
+    "Entradas":[
+      {id:320,n:"Ceviche de champiñón entrada",p:2200},
+      {id:451,n:"Ceviche de quinoa",p:1500},
+      {id:317,n:"Ceviche de reineta entrada",p:4500},
+      {id:318,n:"Ceviche mixto reineta y salmón entrada",p:5600},
+      {id:457,n:"Crepe relleno espinaca champiñón queso mantecoso",p:2400},
+      {id:321,n:"Crepes de ave choclo entrada",p:2500},
+      {id:322,n:"Crepe espinaca choclo entrada",p:2100},
+      {id:460,n:"Tartar de palmitos y palta",p:2500},
+      {id:323,n:"Timbal jamón palta entrada",p:2600},
+      {id:324,n:"Timbal jamón tomate choclo entrada",p:2000},
+      {id:325,n:"Timbal palta camarón entrada",p:4300},
+      {id:326,n:"Timbal palta reina entrada",p:3100},
+      {id:458,n:"Trilogía de causas limeñas",p:3400}
+    ],
+    "Principales":[
+      {id:455,n:"Champiñones rellenos ratatouille a la parmesana",p:3200},
+      {id:327,n:"Filete de res",p:9500},
+      {id:328,n:"Lomo de res",p:8200},
+      {id:329,n:"Lomo saltado",p:8300},
+      {id:373,n:"Menú niño",p:8800},
+      {id:332,n:"Pechuga de ave rellena",p:5300},
+      {id:330,n:"Pollo a la plancha",p:4300},
+      {id:331,n:"Salmón a la mantequilla",p:12600},
+      {id:408,n:"Suprema de ave apanada niños",p:3800},
+      {id:334,n:"Vegetariano om. cham. queso",p:3800},
+      {id:333,n:"Vegetariano",p:3300},
+      {id:335,n:"Verduras salteadas papas rústicas",p:2800}
+    ],
+    "Postres":[
+      {id:352,n:"Almendrado",p:3000},
+      {id:353,n:"Celestino con helado",p:2100},
+      {id:449,n:"Crema catalana",p:1900},
+      {id:354,n:"Leche asada",p:1600},
+      {id:459,n:"Mousse de chocolate vegano",p:2000},
+      {id:355,n:"Pana cotta de café",p:2000},
+      {id:356,n:"Pana cotta de manjar",p:1800},
+      {id:357,n:"Suspiro berries",p:2500},
+      {id:477,n:"Copón de helado",p:1700},
+      {id:479,n:"Ensalada de frutas",p:3000},
+      {id:447,n:"Turrón de vino tinto",p:1500}
+    ],
+    "Bebidas Cena":[
+      {id:10371,n:"Bebida en lata c/a cena",p:1400},
+      {id:10372,n:"Bebida en lata s/a cena",p:1300},
+      {id:10368,n:"Jugo natural de chirimoya cena",p:1200},
+      {id:10406,n:"Jugo natural de frambuesa cena",p:1200},
+      {id:10407,n:"Jugo natural de mango cena",p:1000},
+      {id:10085,n:"Agua con gas cena",p:700},
+      {id:10086,n:"Agua sin gas cena",p:700},
+      {id:132,n:"Copa de vino Santa Emiliana",p:1200},
+      {id:124,n:"Copa de vino Carmen Margoux",p:1400}
+    ],
+    "Acompañamientos":[
+      {id:463,n:"Cremoso de quinoa",p:1500},
+      {id:456,n:"Hummus de garbanzos",p:800},
+      {id:444,n:"Lasaña de verduras",p:1600},
+      {id:336,n:"Papas al ajillo",p:1100},
+      {id:337,n:"Papas al romero",p:1000},
+      {id:338,n:"Papas duquesas",p:1000},
+      {id:438,n:"Pastelera de choclo con verduras salteadas",p:2000},
+      {id:405,n:"Pastelera de choclo",p:2300},
+      {id:339,n:"Puré rústico",p:1100},
+      {id:340,n:"Risotto al vino tinto",p:1300},
+      {id:341,n:"Risotto de champiñón",p:1900},
+      {id:402,n:"Risotto de verduras",p:1800},
+      {id:421,n:"Verduras salteadas y papas al ajillo",p:1100},
+      {id:342,n:"Verduras salteadas",p:1700}
+    ],
+    "Salsas":[
+      {id:343,n:"Salsa de champiñón blanca",p:1500},
+      {id:350,n:"Salsa de champiñón española",p:1700},
+      {id:42,n:"Salsa de alcaparras",p:1600},
+      {id:344,n:"Salsa finas hierbas",p:900},
+      {id:446,n:"Salsa latte harvest",p:300},
+      {id:345,n:"Salsa mignón champiñón",p:800},
+      {id:346,n:"Salsa mostaza",p:500},
+      {id:347,n:"Salsa pimienta blanca",p:400},
+      {id:351,n:"Salsa pimienta española",p:600},
+      {id:348,n:"Salsa queso azul roquefort",p:1100},
+      {id:349,n:"Salsa vino tinto dulce",p:400}
+    ],
+    "Café":[
+      {id:391,n:"Café",p:700},
+      {id:441,n:"Café grande",p:500},
+      {id:360,n:"Café sachet",p:400},
+      {id:359,n:"Té de hierbas",p:600},
+      {id:392,n:"Té",p:100},
+      {id:361,n:"Té servicio",p:700}
+    ],
+    "Decoraciones":[
+      {id:454,n:"Crocante de queso",p:300},
+      {id:464,n:"Crujiente de arroz",p:300},
+      {id:462,n:"Tuile",p:300}
+    ],
+    "Dressing":[
+      {id:452,n:"Dressing de mango",p:500},
+      {id:461,n:"Dressing de pimientos asados",p:400}
+    ],
+    "Sandwich":[
+      {id:365,n:"Ave italiano",p:4400},
+      {id:22,n:"Barros luco",p:5100},
+      {id:364,n:"Chacarero",p:4100},
+      {id:363,n:"Churrasco italiano",p:4800},
+      {id:389,n:"Tapadito ave pimentón",p:700},
+      {id:390,n:"Tapadito salame queso crema y aceitunas",p:700}
+    ]
+  };
+
+  let cart={},currentCategory=Object.keys(DATABASE)[0],people=50,budgetNumber=1;
+  let distributeMode=false,distributeSelected=new Set();
+
+  function fmt(n){return'$'+n.toLocaleString('es-CL')}
+  function getPeople(){return parseInt(document.getElementById('people-count').value)||50}
+  function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=val}
+
+  /* ── RENDER CATEGORIES ── */
+  function renderCategories(){
+    // Sidebar (desktop) - vertical
+    const sidebar=document.getElementById('category-container');
+    if(sidebar){
+      sidebar.innerHTML='';
+      Object.keys(DATABASE).forEach(cat=>{
+        const inCart=Object.values(cart).filter(i=>i.cat===cat).length;
+        const b=document.createElement('button');
+        b.className='csb'+(cat===currentCategory?' active':'');
+        b.innerHTML=`<span class="dot"></span><span style="flex:1;text-align:left">${cat}</span>${inCart>0?`<span class="cbadge vis">${inCart}</span>`:''}`;
+        b.onclick=()=>switchCat(cat);
+        sidebar.appendChild(b);
+      });
+    }
+    // Mobile bar - horizontal pills
+    const mobile=document.getElementById('mobile-cat-bar');
+    if(mobile){
+      mobile.innerHTML='';
+      Object.keys(DATABASE).forEach(cat=>{
+        const b=document.createElement('button');
+        b.className='cpill'+(cat===currentCategory?' active':'');
+        b.textContent=cat;
+        b.onclick=()=>switchCat(cat);
+        mobile.appendChild(b);
+      });
+    }
+    // Update section label
+    setEl('current-cat-label',currentCategory);
+  }
+
+  function switchCat(cat){
+    currentCategory=cat;
+    distributeMode=false;
+    distributeSelected.clear();
+    renderCategories();
+    renderProducts();
+    renderDistributeBar();
+    syncDistributeButtons(false);
+  }
+
+  /* ── RENDER PRODUCTS ── */
+  function renderProducts(){
+    const list=document.getElementById('product-list');
+    list.innerHTML='';
+    (DATABASE[currentCategory]||[]).forEach(item=>{
+      const qty=cart[item.id]?cart[item.id].qty:0;
+      const sel=qty>0;
+      const chkd=distributeSelected.has(item.id);
+      const div=document.createElement('div');
+
+      if(distributeMode){
+        div.className='pcard distributing'+(chkd?' dist-sel':'');
+        div.onclick=()=>{
+          if(distributeSelected.has(item.id))distributeSelected.delete(item.id);
+          else distributeSelected.add(item.id);
+          renderProducts();renderDistributeBar();
+        };
+        div.innerHTML=`
+          <div style="width:20px;height:20px;border-radius:6px;border:2px solid ${chkd?'#1e40af':'#cbd5e1'};background:${chkd?'#1e40af':'white'};display:flex;align-items:center;justify-content:center;flex:none;transition:all .12s">
+            ${chkd?'<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5 3.5-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}
+          </div>
+          <div style="min-width:0;flex:1">
+            <p style="font-size:12.5px;font-weight:700;color:#0f172a;line-height:1.3">${item.n}</p>
+            <p style="font-size:11px;color:#1e40af;font-weight:700;margin-top:2px">${fmt(item.p)}<span style="color:#94a3b8;font-weight:500;font-size:10px"> / persona</span></p>
+          </div>`;
+      } else {
+        div.className='pcard'+(sel?' sel':'');
+        div.innerHTML=`
+          <div style="min-width:0;flex:1">
+            <p style="font-size:12.5px;font-weight:700;color:${sel?'#1e3a8a':'#0f172a'};line-height:1.3">${item.n}</p>
+            <p style="font-size:11px;color:#1e40af;font-weight:700;margin-top:2px">${fmt(item.p)}<span style="color:#94a3b8;font-weight:500;font-size:10px"> / persona</span></p>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex:none">
+            ${sel?`<button class="qbtn" style="width:28px;height:28px;border-radius:50%;background:#f1f5f9;color:#475569;font-size:14px;font-weight:900" onclick="changeQty(${item.id},-1);event.stopPropagation()">−</button>
+            <span style="width:22px;text-align:center;font-size:13px;font-weight:900;color:#0f172a">${qty}</span>`:''}
+            <button class="qbtn" style="width:30px;height:30px;border-radius:50%;background:${sel?'#1e40af':'#eff6ff'};color:${sel?'white':'#1e40af'};font-size:15px;font-weight:900;transition:background .12s" onclick="changeQty(${item.id},1);event.stopPropagation()">+</button>
+          </div>`;
+      }
+      list.appendChild(div);
+    });
+  }
+
+  /* ── DISTRIBUTE BAR ── */
+  function renderDistributeBar(){
+    const bar=document.getElementById('distribute-bar');
+    const btn=document.getElementById('distribute-btn-main');
+    const hint=document.getElementById('distribute-hint');
+    if(!bar)return;
+    if(distributeMode){
+      bar.classList.add('active');
+      const n=distributeSelected.size;
+      if(n===0){
+        hint.textContent='Selecciona los productos que quieres agrupar en una línea';
+        btn.disabled=true;
+        btn.style.cssText='background:#e2e8f0;color:#94a3b8;border:none;padding:7px 14px;border-radius:9px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:not-allowed;white-space:nowrap';
+      } else {
+        const items=[...distributeSelected].map(findItem).filter(Boolean);
+        const avg=n>1?Math.round(items.reduce((s,i)=>s+i.p,0)/n):items[0]?.p||0;
+        hint.textContent=n===1
+          ?`1 producto · ${fmt(items[0].p)} por persona`
+          :`${n} productos → precio promedio ${fmt(avg)} por persona`;
+        btn.disabled=false;
+        btn.style.cssText='background:#1e40af;color:white;border:none;padding:7px 14px;border-radius:9px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;white-space:nowrap';
+      }
+    } else {
+      bar.classList.remove('active');
+    }
+  }
+
+  function syncDistributeButtons(active){
+    const btnA=document.getElementById('distribute-toggle-btn');
+    const btnB=document.getElementById('distribute-toggle-btn-mobile');
+    [btnA,btnB].filter(Boolean).forEach(btn=>{
+      if(active){
+        btn.innerHTML='<i class="fas fa-times" style="margin-right:5px"></i>Cancelar';
+        if(btn.id==='distribute-toggle-btn'){
+          btn.style.cssText='width:100%;background:#fee2e2;color:#dc2626;border:none;padding:8px 6px;border-radius:10px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';
+        } else {
+          btn.style.cssText='background:#fee2e2;color:#dc2626;border:none;padding:5px 12px;border-radius:8px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;gap:5px';
+        }
+      } else {
+        btn.innerHTML='<i class="fas fa-layer-group" style="margin-right:5px"></i>Agrupar';
+        if(btn.id==='distribute-toggle-btn'){
+          btn.style.cssText='width:100%;background:#eff6ff;color:#1e40af;border:none;padding:8px 6px;border-radius:10px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px';
+        } else {
+          btn.style.cssText='background:#eff6ff;color:#1e40af;border:none;padding:5px 12px;border-radius:8px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;gap:5px';
+        }
+      }
+    });
+  }
+
+  function toggleDistributeMode(){
+    distributeMode=!distributeMode;
+    distributeSelected.clear();
+    syncDistributeButtons(distributeMode);
+    renderProducts();
+    renderDistributeBar();
+  }
+
+  function distributeSelected_exec(){
+    if(distributeSelected.size===0)return;
+    const ids=[...distributeSelected];
+    const items=ids.map(findItem).filter(Boolean);
+    if(items.length===0)return;
+    if(items.length===1){
+      const item=items[0];
+      cart[item.id]={...item,qty:1,cat:currentCategory};
+    } else {
+      const avgPrice=Math.round(items.reduce((s,i)=>s+i.p,0)/items.length);
+      const groupName=items.map(i=>i.n).join(' o ');
+      const groupId='group_'+Date.now();
+      cart[groupId]={id:groupId,n:groupName,p:avgPrice,qty:1,cat:currentCategory,isGroup:true,members:items.map(i=>i.n)};
+    }
+    distributeMode=false;
+    distributeSelected.clear();
+    syncDistributeButtons(false);
+    updateUI();
+    renderProducts();
+    renderDistributeBar();
+  }
+
+  function distributeCurrentCategoryToGuests(){toggleDistributeMode()}
+
+  /* ── UPDATE UI ── */
+  function updateUI(){
+    people=getPeople();
+    let pp=0,units=0;
+    Object.values(cart).forEach(i=>{pp+=i.p*i.qty;units+=i.qty;});
+    const total=pp*people;
+    const count=Object.keys(cart).length;
+    setEl('header-total',fmt(total));
+    setEl('header-pp',fmt(pp));
+    setEl('total-per-person',fmt(pp));
+    setEl('badge-count',count);
+    setEl('badge-count-2',count);
+    setEl('badge-count-desktop',count+(count===1?' item':' items'));
+    setEl('drawer-units',units);
+    setEl('drawer-average',fmt(pp));
+    setEl('drawer-total',fmt(total));
+    renderCartDrawer();
+    renderCategories();
+    renderPrint();
+  }
+
+  function removeCartItem(id){delete cart[id];updateUI();renderProducts()}
+
+  /* ── CART DRAWER ── */
+  function renderCartDrawer(){
+    const container=document.getElementById('cart-items');
+    container.innerHTML='';
+    const byCategory={};
+    Object.values(cart).forEach(i=>{
+      const c=i.cat||'Otros';
+      if(!byCategory[c])byCategory[c]=[];
+      byCategory[c].push(i);
+    });
+    if(Object.keys(byCategory).length===0){
+      container.innerHTML='<p style="color:#94a3b8;font-size:12px;text-align:center;padding:32px 0">No hay productos seleccionados.</p>';
+      return;
+    }
+    Object.entries(byCategory).forEach(([cat,items])=>{
+      const sub=items.reduce((s,i)=>s+i.p*i.qty,0);
+      const div=document.createElement('div');
+      div.style.cssText='margin-bottom:16px';
+      const rows=items.map(i=>{
+        const label=i.isGroup
+          ?`<span style="color:#1e40af;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.n}</span><span style="background:#dbeafe;color:#1e40af;font-size:8px;font-weight:800;padding:1px 5px;border-radius:4px;flex:none;margin-left:4px">grupo</span>`
+          :`<span style="color:#374151;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.n}</span>`;
+        const qtyLabel=i.qty===1?'1 p/p':`${i.qty} p/p`;
+        return `<div style="display:flex;align-items:center;gap:6px;font-size:11.5px;margin-bottom:5px">
+          <div style="display:flex;align-items:center;min-width:0;flex:1;gap:4px">${label}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex:none">
+            <span style="color:#64748b;font-size:10.5px">${qtyLabel} × ${fmt(i.p)}</span>
+            <button onclick="removeCartItem('${i.id}')" style="color:#f87171;background:none;border:none;cursor:pointer;font-size:11px;font-weight:900;line-height:1;padding:2px">✕</button>
+          </div>
+        </div>`;
+      }).join('');
+      div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #f1f5f9">
+        <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#94a3b8">${cat}</p>
+        <p style="font-size:11px;font-weight:900;color:#1e40af">${fmt(sub)}</p>
+      </div><div>${rows}</div>`;
+      container.appendChild(div);
+    });
+  }
+
+  /* ── RENDER PRINT ── */
+  function renderPrint(){
+    people=getPeople();
+    ['socio','rut','telefono','tipo','fecha','hora','salon','pago'].forEach(f=>{
+      const el=document.getElementById('print-'+f);
+      if(el)el.textContent=document.getElementById('field-'+f).value;
+    });
+    setEl('print-people-obs',people);
+    setEl('print-number-main',budgetNumber);
+    const now=new Date();
+    setEl('print-date','Fecha: '+now.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'}));
+
+    let pp=0;
+    Object.values(cart).forEach(i=>pp+=i.p*i.qty);
+    const total=pp*people;
+
+    setEl('print-pp-value',fmt(pp)+'.-');
+    setEl('print-total-general',fmt(total));
+    setEl('print-people-footer',people);
+    setEl('print-items-count',Object.keys(cart).length);
+
+    const byCategory={};
+    Object.values(cart).forEach(i=>{
+      const c=i.cat||'Otros';
+      if(!byCategory[c])byCategory[c]=[];
+      byCategory[c].push(i);
+    });
+    const menu=document.getElementById('print-menu-content');
+    menu.innerHTML='';
+    if(Object.keys(byCategory).length===0){
+      menu.innerHTML='<p style="font-size:8pt;color:#94a3b8;font-style:italic">Sin productos seleccionados.</p>';
+      return;
+    }
+    Object.entries(byCategory).forEach(([cat,items])=>{
+      const block=document.createElement('div');
+      block.className='ps-cat-block';
+      const title=document.createElement('div');
+      title.className='ps-cat-title';
+      title.textContent=cat+':';
+      block.appendChild(title);
+      items.forEach(i=>{
+        const row=document.createElement('div');
+        row.className='ps-cat-item';
+        const pad=n=>String(n).padStart(2,'0');
+        const absQty=i.qty*people;
+        row.innerHTML=i.isGroup
+          ?`${pad(absQty)} ${i.n} <span class="ps-cat-item-qty">— ${fmt(i.p)} p/p (precio promedio)</span>`
+          :`${pad(absQty)} ${i.n} <span class="ps-cat-item-qty">— ${fmt(i.p)} p/p</span>`;
+        block.appendChild(row);
+      });
+      menu.appendChild(block);
+    });
+  }
+
+  /* ── DRAWER TOGGLE ── */
+  function toggleDrawer(){
+    if(window.innerWidth>=1024)return;
+    const d=document.getElementById('drawer');
+    const o=document.getElementById('drawer-overlay');
+    const open=d.style.transform==='' || d.style.transform==='translateY(100%)';
+    d.style.transform=open?'translateY(0)':'translateY(100%)';
+    o.classList.toggle('hidden',!open);
+  }
+
+  function clearCart(){cart={};updateUI();renderProducts()}
+
+  function changePeople(delta){
+    const input=document.getElementById('people-count');
+    input.value=Math.max(1,(parseInt(input.value)||50)+delta);
+    updateUI();
+  }
+
+  function changeQty(id,delta){
+    const item=findItem(id);if(!item)return;
+    const cur=cart[id]?cart[id].qty:0;
+    const next=Math.max(0,cur+delta);
+    if(next===0){delete cart[id];}else{cart[id]={...item,qty:next,cat:currentCategory};}
+    updateUI();renderProducts();
+  }
+
+  function findItem(id){
+    for(const cat of Object.values(DATABASE)){
+      const f=cat.find(i=>i.id===id);if(f)return f;
+    }return null;
+  }
+
+  document.querySelectorAll('input[id^="field-"]').forEach(el=>el.addEventListener('input',renderPrint));
+
+  renderCategories();
+  renderProducts();
+  updateUI();
+</script>
 </body>
 </html>
