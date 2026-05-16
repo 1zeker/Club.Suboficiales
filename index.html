@@ -192,11 +192,11 @@
       .ps-inner{position:absolute;top:10px;left:0;right:9px;bottom:0;display:grid;grid-template-columns:52mm 1fr}
       .ps-left{padding:6mm 4mm 5mm 5mm;border-right:3px solid #0d4597;display:flex;flex-direction:column}
       .ps-logo-wrap{display:flex;justify-content:center;margin-bottom:2mm}
-      .ps-logo-wrap img{width:24mm;height:24mm;object-fit:contain}
+      .ps-logo-wrap img{width:32mm;height:32mm;object-fit:contain}
       .ps-club-name{font-size:6.5pt;font-weight:800;letter-spacing:.14em;color:#0d4597;text-transform:uppercase;text-align:center;line-height:1.4;margin-bottom:4mm}
-      .ps-obs-box{border:3px solid #0d4597;padding:3mm 3mm;flex:1}
-      .ps-obs-title{font-size:7.5pt;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#0d4597;margin-bottom:2.5mm;padding-bottom:1.5mm;border-bottom:1.5px solid #0d4597}
-      .ps-obs-row{font-size:7pt;line-height:1.75;color:#1e293b}
+      .ps-obs-box{border:3px solid #0d4597;padding:3mm 3.5mm;flex:1}
+      .ps-obs-title{font-size:9pt;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#0d4597;margin-bottom:2.5mm;padding-bottom:1.5mm;border-bottom:1.5px solid #0d4597}
+      .ps-obs-row{font-size:8.5pt;line-height:1.85;color:#1e293b}
       .ps-obs-row b{font-weight:700;color:#0d4597}
       .ps-date{margin-top:4mm;font-size:6.5pt;color:#64748b;font-style:italic}
       .ps-right{padding:5mm 5mm 4mm 5mm;display:flex;flex-direction:column}
@@ -212,6 +212,39 @@
       .ps-totals-row{display:flex;justify-content:space-between;font-size:7pt;color:#64748b;margin-top:2mm}
       .ps-totals-row strong{color:#1e293b;font-size:7.5pt}
     }
+
+    /* ── HISTORY MODAL ── */
+    #history-modal{
+      position:fixed;inset:0;z-index:80;
+      display:none;align-items:flex-end;justify-content:center;
+      background:rgba(15,23,42,.5);backdrop-filter:blur(3px);
+    }
+    #history-modal.open{display:flex}
+    @media(min-width:640px){
+      #history-modal{align-items:center}
+      #history-panel{border-radius:18px!important;max-height:78vh;max-width:520px;width:100%}
+    }
+    #history-panel{
+      background:white;width:100%;max-height:88vh;
+      border-radius:22px 22px 0 0;
+      display:flex;flex-direction:column;
+      overflow:hidden;
+    }
+    .hq-card{
+      padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:12px;
+      cursor:pointer;transition:border-color .12s,background .12s;
+      display:flex;align-items:center;gap:10px;
+    }
+    .hq-card:hover{border-color:#93c5fd;background:#f8faff}
+
+    /* ── SAVE TOAST ── */
+    #save-toast{
+      position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+      background:#0f172a;color:white;padding:9px 18px;border-radius:99px;
+      font-size:12px;font-weight:700;white-space:nowrap;
+      opacity:0;transition:opacity .25s,transform .25s;z-index:90;pointer-events:none;
+    }
+    #save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
     /* ── MISC ── */
     input[type=number]::-webkit-inner-spin-button,
@@ -239,14 +272,41 @@
     @media(min-width:1024px){#fields-row{grid-template-columns:repeat(8,1fr)}}
     .finput{
       padding:5px 10px;font-size:11px;border:1.5px solid #e2e8f0;border-radius:8px;
-      outline:none;background:white;color:#334155;width:100%;
+      outline:none;background:white;color:#334155;width:100%;box-sizing:border-box;
       transition:border-color .12s;
     }
     .finput:focus{border-color:#93c5fd}
     .finput::placeholder{color:#94a3b8}
+    input[type=date].finput{font-size:11px;color:#334155;padding:4px 8px}
+    input[type=date].finput::-webkit-calendar-picker-indicator{opacity:.5;cursor:pointer;scale:.9}
+    /* Phone field */
+    .fphone{font-size:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;color:#334155;display:flex;align-items:center;transition:border-color .12s;overflow:hidden;width:100%}
+    .fphone:focus-within{border-color:#93c5fd}
+    .fphone-prefix{font-size:11px;font-weight:700;color:#1e40af;padding:5px 5px 5px 8px;white-space:nowrap;border-right:1.5px solid #e2e8f0;background:#f0f6ff;flex:none}
+    .fphone input{border:none;outline:none;background:transparent;font-size:11px;padding:5px 8px;color:#334155;width:100%;font-family:inherit}
+    /* Time pair */
+    .ftime{border:1.5px solid #e2e8f0;border-radius:8px;background:white;display:flex;align-items:center;overflow:hidden;transition:border-color .12s;width:100%;box-sizing:border-box}
+    .ftime:focus-within{border-color:#93c5fd}
+    .ftime input[type=time]{border:none;outline:none;background:transparent;font-size:10px;padding:5px 3px;color:#334155;font-family:inherit;flex:1;min-width:0}
+    .ftime input[type=time]::-webkit-calendar-picker-indicator{opacity:.4;cursor:pointer;scale:.8}
+    .ftime-sep{font-size:9px;color:#94a3b8;flex:none;padding:0 1px}
+    /* Multi-select dropdown */
+    .fselect{position:relative;width:100%}
+    .fselect-display{padding:5px 8px 5px 10px;font-size:11px;border:1.5px solid #e2e8f0;border-radius:8px;background:white;color:#334155;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:4px;transition:border-color .12s;user-select:none;min-height:29px;box-sizing:border-box}
+    .fselect-display:hover,.fselect.open .fselect-display{border-color:#93c5fd}
+    .fsel-placeholder{color:#94a3b8}
+    .fsel-value{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+    .fselect-panel{position:fixed;z-index:9999;background:white;border:1.5px solid #93c5fd;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.14);padding:5px;display:none;min-width:150px}
+    .fselect.open .fselect-panel{display:block}
+    .fsel-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11.5px;color:#334155;transition:background .1s;white-space:nowrap}
+    .fsel-opt:hover{background:#eff6ff}
+    .fsel-opt input[type=checkbox]{width:14px;height:14px;accent-color:#1e40af;cursor:pointer;flex:none;margin:0}
   </style>
 </head>
 <body>
+
+<!-- Background watermark image -->
+<div class="no-print" style="position:fixed;inset:0;z-index:-1;background:url('./calzada.jpg') center/cover no-repeat;opacity:0.07;filter:grayscale(20%) blur(0.5px);pointer-events:none"></div>
 
 <div id="app">
 
@@ -257,7 +317,7 @@
     <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid #f1f5f9">
 
       <!-- Logo -->
-      <img src="./logo2.jpg" alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:8px;flex:none" onerror="this.style.display='none'">
+      <img src="./logo2.jpg" alt="Logo" style="width:64px;height:64px;object-fit:contain;flex:none" onerror="this.style.display='none'">
 
       <!-- Title (hidden on very small screens) -->
       <div style="min-width:0;flex:1" class="hidden sm:block">
@@ -293,6 +353,12 @@
         <p id="header-total" style="font-size:17px;font-weight:900;color:#1e40af;line-height:1">$0</p>
       </div>
 
+      <!-- History button -->
+      <button onclick="openHistory()" title="Historial de cotizaciones" style="width:34px;height:34px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;position:relative">
+        <i class="fas fa-clock-rotate-left" style="color:#475569;font-size:12px"></i>
+        <span id="history-count-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#64748b;color:white;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;font-size:8px;font-weight:900"></span>
+      </button>
+
       <!-- PDF button (desktop only) -->
       <button onclick="window.print()" id="pdf-btn-hd" class="hidden lg:flex" style="align-items:center;gap:7px;background:#1e40af;color:white;border:none;padding:8px 15px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;letter-spacing:.04em">
         <i class="fas fa-file-pdf"></i> Propuesta PDF
@@ -307,14 +373,54 @@
 
     <!-- Fields row -->
     <div id="fields-row">
-      <input id="field-socio"    class="finput" placeholder="Socio">
-      <input id="field-rut"      class="finput" placeholder="RUT">
-      <input id="field-telefono" class="finput" placeholder="Teléfono">
-      <input id="field-tipo"     class="finput" placeholder="Tipo de evento">
-      <input id="field-fecha"    class="finput" placeholder="Fecha">
-      <input id="field-hora"     class="finput" placeholder="Hora">
-      <input id="field-salon"    class="finput" placeholder="Salón" value="Azul y Terraza">
-      <input id="field-pago"     class="finput" placeholder="Forma de pago">
+      <!-- Socio -->
+      <input id="field-socio" class="finput" placeholder="Socio" oninput="renderPrint()">
+      <!-- RUT auto-format -->
+      <input id="field-rut" class="finput" placeholder="RUT 12.345.678-9" maxlength="13" oninput="formatRut(this)">
+      <!-- Teléfono +569 prefix -->
+      <div class="fphone">
+        <span class="fphone-prefix">+569</span>
+        <input id="field-telefono" type="tel" maxlength="8" placeholder="12345678" oninput="renderPrint()">
+      </div>
+      <!-- Tipo de evento -->
+      <input id="field-tipo" class="finput" placeholder="Tipo de evento" oninput="renderPrint()">
+      <!-- Fecha calendario -->
+      <input id="field-fecha" class="finput" type="date" onchange="renderPrint()">
+      <!-- Hora inicio → término -->
+      <div class="ftime">
+        <input type="time" id="field-hora-inicio" oninput="renderPrint()" title="Hora inicio">
+        <span class="ftime-sep">→</span>
+        <input type="time" id="field-hora-fin" oninput="renderPrint()" title="Hora término">
+      </div>
+      <!-- Salón multi-select -->
+      <div class="fselect" id="salon-selector">
+        <div class="fselect-display" onclick="toggleSelect('salon-selector',event)">
+          <span id="salon-display" class="fsel-placeholder fsel-value">Salón</span>
+          <i class="fas fa-chevron-down" style="font-size:7px;color:#94a3b8;flex:none"></i>
+        </div>
+        <div class="fselect-panel">
+          <label class="fsel-opt"><input type="checkbox" value="Azul" onchange="updateSelectDisplay('salon')"><span>Azul</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Terraza" onchange="updateSelectDisplay('salon')"><span>Terraza</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Salón Principal" onchange="updateSelectDisplay('salon')"><span>Salón Principal</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Casa de Cumpleaños" onchange="updateSelectDisplay('salon')"><span>Casa de Cumpleaños</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Pérgola" onchange="updateSelectDisplay('salon')"><span>Pérgola</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Quincho" onchange="updateSelectDisplay('salon')"><span>Quincho</span></label>
+        </div>
+      </div>
+      <!-- Forma de pago multi-select -->
+      <div class="fselect" id="pago-selector">
+        <div class="fselect-display" onclick="toggleSelect('pago-selector',event)">
+          <span id="pago-display" class="fsel-placeholder fsel-value">Forma de pago</span>
+          <i class="fas fa-chevron-down" style="font-size:7px;color:#94a3b8;flex:none"></i>
+        </div>
+        <div class="fselect-panel">
+          <label class="fsel-opt"><input type="checkbox" value="Efectivo" onchange="updateSelectDisplay('pago')"><span>Efectivo</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Cheque" onchange="updateSelectDisplay('pago')"><span>Cheque</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Transferencia" onchange="updateSelectDisplay('pago')"><span>Transferencia</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Tarjeta de Crédito" onchange="updateSelectDisplay('pago')"><span>Tarjeta de Crédito</span></label>
+          <label class="fsel-opt"><input type="checkbox" value="Tarjeta de Débito" onchange="updateSelectDisplay('pago')"><span>Tarjeta de Débito</span></label>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -394,6 +500,36 @@
           <span style="font-size:9.5px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Total evento</span>
           <span id="drawer-total" style="font-size:22px;font-weight:900;color:#1e40af">$0</span>
         </div>
+        <!-- Discount field -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:11px;padding:9px 12px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <label style="font-size:9.5px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:5px">
+              <i class="fas fa-tag" style="color:#1e40af;font-size:9px"></i>Descuento
+            </label>
+            <div style="display:flex;align-items:center;gap:3px">
+              <input type="number" id="discount-pct" min="0" max="100" value="0" onchange="updateUI()" oninput="updateUI()" style="width:40px;text-align:right;font-size:16px;font-weight:900;color:#0f172a;border:none;outline:none;background:transparent;padding:0">
+              <span style="font-size:14px;font-weight:700;color:#64748b">%</span>
+            </div>
+          </div>
+          <div id="discount-savings-row" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:9px;color:#94a3b8;font-weight:600">Precio lista</span>
+            <span id="drawer-original-pp" style="font-size:10.5px;font-weight:700;color:#94a3b8;text-decoration:line-through">$0</span>
+          </div>
+          <div id="discount-amount-row" style="display:none;justify-content:space-between;align-items:center">
+            <span style="font-size:9px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Ahorro</span>
+            <span id="drawer-discount-amount" style="font-size:11px;font-weight:900;color:#16a34a">-$0</span>
+          </div>
+        </div>
+        <!-- Notes field -->
+        <div style="margin-bottom:8px">
+          <label style="font-size:9.5px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:5px;margin-bottom:5px">
+            <i class="fas fa-note-sticky" style="color:#1e40af;font-size:9px"></i>Notas / condiciones del evento
+          </label>
+          <textarea id="event-notes" rows="3" placeholder="Ej: Incluye mantelería, música, decoración básica…" oninput="renderPrint()" style="width:100%;box-sizing:border-box;border:1.5px solid #e2e8f0;border-radius:10px;padding:8px 10px;font-size:11px;font-family:inherit;color:#0f172a;background:#f8fafc;outline:none;resize:vertical;line-height:1.5"></textarea>
+        </div>
+        <button onclick="saveQuotation()" style="width:100%;background:#f1f5f9;color:#0f172a;border:none;padding:10px;border-radius:12px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.04em;margin-bottom:8px">
+          <i class="fas fa-floppy-disk" style="color:#1e40af"></i>Guardar cotización
+        </button>
         <button onclick="window.print()" style="width:100%;background:#1e40af;color:white;border:none;padding:11px;border-radius:12px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.04em">
           <i class="fas fa-file-pdf"></i>Generar Propuesta PDF
         </button>
@@ -422,9 +558,38 @@
 <!-- Drawer overlay (mobile) -->
 <div id="drawer-overlay" class="hidden no-print" onclick="toggleDrawer()" style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;backdrop-filter:blur(2px)"></div>
 
+<!-- ═══════════════════════════ HISTORY MODAL ═══════════════════════════ -->
+<div id="history-modal" class="no-print" onclick="e=>{if(e.target===this)closeHistory()}">
+  <div id="history-panel">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #f1f5f9;flex:none">
+      <div>
+        <h3 style="font-size:16px;font-weight:900;color:#0f172a">Historial de cotizaciones</h3>
+        <p style="font-size:10px;color:#94a3b8;margin-top:2px">Guardadas localmente en este dispositivo</p>
+      </div>
+      <button onclick="closeHistory()" style="width:30px;height:30px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <i class="fas fa-times" style="color:#475569;font-size:12px"></i>
+      </button>
+    </div>
+    <!-- List -->
+    <div id="history-list" class="scroll-y" style="flex:1;padding:14px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:8px"></div>
+    <!-- Footer: new quotation -->
+    <div style="padding:12px 16px;border-top:1px solid #f1f5f9;flex:none">
+      <button onclick="newQuotation()" style="width:100%;background:#f1f5f9;color:#0f172a;border:none;padding:10px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="fas fa-plus" style="color:#1e40af"></i>Nueva cotización vacía
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Save toast -->
+<div id="save-toast" class="no-print"></div>
+
 <!-- ═══════════════════════════ PRINT SHEET ═══════════════════════════ -->
 <div class="print-only">
   <div class="print-sheet">
+    <!-- Background photo watermark -->
+    <div style="position:absolute;inset:0;background:url('./calzada.jpg') center/cover no-repeat;opacity:0.06"></div>
     <div class="ps-top-bar"></div>
     <div class="ps-right-bar"></div>
     <div class="ps-inner">
@@ -457,11 +622,19 @@
         </div>
         <div class="ps-menu" id="print-menu-content"></div>
         <div class="ps-footer">
+          <div id="print-discount-row" style="display:none;justify-content:center;align-items:center;gap:14px;font-size:7pt;color:#64748b;margin-bottom:1.5mm;padding-bottom:1.5mm;border-bottom:0.5pt solid #e2e8f0">
+            <span>Precio lista: <span style="text-decoration:line-through" id="print-pp-original"></span></span>
+            <span style="color:#16a34a;font-weight:700">Descuento: <span id="print-discount-pct"></span></span>
+          </div>
           <div class="ps-valor">VALOR POR PERSONA: <span id="print-pp-value">$0</span></div>
           <div class="ps-totals-row">
             <span>Total general: <strong id="print-total-general">$0</strong></span>
             <span>N° personas: <strong id="print-people-footer"></strong></span>
             <span>Items: <strong id="print-items-count"></strong></span>
+          </div>
+          <div id="print-notes-section" style="display:none;margin-top:3mm;padding-top:2.5mm;border-top:1px solid #cbd5e1">
+            <p style="font-size:7pt;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:#0d4597;margin-bottom:1.5mm">Notas y condiciones</p>
+            <p id="print-notes-text" style="font-size:7.5pt;color:#334155;line-height:1.6;white-space:pre-wrap"></p>
           </div>
         </div>
       </div>
@@ -787,22 +960,111 @@
 
   function distributeCurrentCategoryToGuests(){toggleDistributeMode()}
 
+  /* ── RUT FORMATTER ── */
+  function formatRut(el){
+    let v=el.value.replace(/[^0-9kK]/g,'');
+    if(v.length<2){renderPrint();return;}
+    const body=v.slice(0,-1);
+    const dv=v.slice(-1).toUpperCase();
+    let out='',c=0;
+    for(let i=body.length-1;i>=0;i--){out=body[i]+out;if(++c%3===0&&i!==0)out='.'+out;}
+    el.value=out+'-'+dv;
+    renderPrint();
+  }
+
+  /* ── MULTI-SELECT DROPDOWN ── */
+  function toggleSelect(selectorId,e){
+    if(e)e.stopPropagation();
+    const sel=document.getElementById(selectorId);
+    const panel=sel.querySelector('.fselect-panel');
+    const isOpen=sel.classList.contains('open');
+    // Close all others
+    document.querySelectorAll('.fselect.open').forEach(s=>{
+      s.classList.remove('open');
+      s.querySelector('.fselect-panel').style.display='none';
+    });
+    if(!isOpen){
+      sel.classList.add('open');
+      panel.style.display='block';
+      const rect=sel.getBoundingClientRect();
+      panel.style.left=rect.left+'px';
+      panel.style.top=(rect.bottom+3)+'px';
+      panel.style.width=Math.max(170,rect.width)+'px';
+    }
+  }
+
+  function updateSelectDisplay(name){
+    const checked=document.querySelectorAll('#'+name+'-selector input[type=checkbox]:checked');
+    const vals=Array.from(checked).map(c=>c.value);
+    const display=document.getElementById(name+'-display');
+    if(!display)return;
+    if(vals.length===0){
+      display.textContent=(name==='salon'?'Salón':'Forma de pago');
+      display.className='fsel-placeholder fsel-value';
+    }else{
+      display.textContent=vals.join(', ');
+      display.className='fsel-value';
+    }
+    renderPrint();
+  }
+
+  function getSelectValue(name){
+    const checked=document.querySelectorAll('#'+name+'-selector input[type=checkbox]:checked');
+    return Array.from(checked).map(c=>c.value).join(', ');
+  }
+
+  function setSelectValue(name,csv){
+    const vals=(csv||'').split(',').map(v=>v.trim()).filter(Boolean);
+    document.querySelectorAll('#'+name+'-selector input[type=checkbox]').forEach(cb=>{
+      cb.checked=vals.includes(cb.value);
+    });
+    updateSelectDisplay(name);
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click',function(){
+    document.querySelectorAll('.fselect.open').forEach(s=>{
+      s.classList.remove('open');
+      const p=s.querySelector('.fselect-panel');
+      if(p)p.style.display='none';
+    });
+  });
+
+  /* ── DISCOUNT HELPER ── */
+  function getDiscount(){return Math.min(100,Math.max(0,parseFloat(document.getElementById('discount-pct')?.value)||0));}
+
   /* ── UPDATE UI ── */
   function updateUI(){
     people=getPeople();
+    const disc=getDiscount();
     let pp=0,units=0;
     Object.values(cart).forEach(i=>{pp+=i.p*i.qty;units+=i.qty;});
-    const total=pp*people;
+    const ppDisc=disc>0?Math.round(pp*(1-disc/100)):pp;
+    const total=ppDisc*people;
     const count=Object.keys(cart).length;
     setEl('header-total',fmt(total));
-    setEl('header-pp',fmt(pp));
-    setEl('total-per-person',fmt(pp));
+    setEl('header-pp',fmt(ppDisc));
+    setEl('total-per-person',fmt(ppDisc));
     setEl('badge-count',count);
     setEl('badge-count-2',count);
     setEl('badge-count-desktop',count+(count===1?' item':' items'));
     setEl('drawer-units',units);
-    setEl('drawer-average',fmt(pp));
+    setEl('drawer-average',fmt(ppDisc));
     setEl('drawer-total',fmt(total));
+    // Discount UI in drawer
+    const savingsRow=document.getElementById('discount-savings-row');
+    const amountRow=document.getElementById('discount-amount-row');
+    if(savingsRow&&amountRow){
+      if(disc>0){
+        setEl('drawer-original-pp',fmt(pp));
+        setEl('drawer-discount-amount','-'+fmt((pp-ppDisc)*people));
+        savingsRow.style.display='flex';
+        amountRow.style.display='flex';
+      } else {
+        savingsRow.style.display='none';
+        amountRow.style.display='none';
+      }
+    }
     renderCartDrawer();
     renderCategories();
     renderPrint();
@@ -852,23 +1114,44 @@
   /* ── RENDER PRINT ── */
   function renderPrint(){
     people=getPeople();
+    const gf=getFields();
     ['socio','rut','telefono','tipo','fecha','hora','salon','pago'].forEach(f=>{
       const el=document.getElementById('print-'+f);
-      if(el)el.textContent=document.getElementById('field-'+f).value;
+      if(el)el.textContent=gf[f]||'';
     });
     setEl('print-people-obs',people);
     setEl('print-number-main',budgetNumber);
     const now=new Date();
     setEl('print-date','Fecha: '+now.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'}));
 
+    const disc=getDiscount();
     let pp=0;
     Object.values(cart).forEach(i=>pp+=i.p*i.qty);
-    const total=pp*people;
+    const ppDisc=disc>0?Math.round(pp*(1-disc/100)):pp;
+    const total=ppDisc*people;
 
-    setEl('print-pp-value',fmt(pp)+'.-');
+    setEl('print-pp-value',fmt(ppDisc)+'.-');
+    // Discount row in PDF
+    const printDiscRow=document.getElementById('print-discount-row');
+    if(printDiscRow){
+      if(disc>0){
+        setEl('print-pp-original',fmt(pp)+'.-');
+        setEl('print-discount-pct',disc+'%');
+        printDiscRow.style.display='flex';
+      } else {
+        printDiscRow.style.display='none';
+      }
+    }
     setEl('print-total-general',fmt(total));
     setEl('print-people-footer',people);
     setEl('print-items-count',Object.keys(cart).length);
+    // Notes
+    const notes=(document.getElementById('event-notes')?.value||'').trim();
+    const notesSection=document.getElementById('print-notes-section');
+    if(notesSection){
+      if(notes){setEl('print-notes-text',notes);notesSection.style.display='block';}
+      else{notesSection.style.display='none';}
+    }
 
     const byCategory={};
     Object.values(cart).forEach(i=>{
@@ -937,9 +1220,191 @@
 
   document.querySelectorAll('input[id^="field-"]').forEach(el=>el.addEventListener('input',renderPrint));
 
+  /* ── HISTORY / LOCALSTORAGE ── */
+  const STORAGE_KEY='cds_cotizador_v1';
+
+  function getSaved(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch{return[];}
+  }
+
+  function getFields(){
+    const f={};
+    f.socio=document.getElementById('field-socio')?.value||'';
+    f.tipo=document.getElementById('field-tipo')?.value||'';
+    f.rut=document.getElementById('field-rut')?.value||'';
+    const tel=document.getElementById('field-telefono')?.value||'';
+    f.telefono=tel?'+569 '+tel:'';
+    const fechaEl=document.getElementById('field-fecha');
+    if(fechaEl&&fechaEl.value){
+      const d=new Date(fechaEl.value+'T12:00:00');
+      f.fecha=d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'});
+    }else f.fecha='';
+    f._fechaRaw=fechaEl?.value||'';
+    const hi=document.getElementById('field-hora-inicio')?.value||'';
+    const hf=document.getElementById('field-hora-fin')?.value||'';
+    f.hora=hi&&hf?hi+' a '+hf:(hi||hf||'');
+    f.salon=getSelectValue('salon');
+    f.pago=getSelectValue('pago');
+    return f;
+  }
+
+  function setFields(f){
+    const socioEl=document.getElementById('field-socio');if(socioEl)socioEl.value=f.socio||'';
+    const tipoEl=document.getElementById('field-tipo');if(tipoEl)tipoEl.value=f.tipo||'';
+    const rutEl=document.getElementById('field-rut');if(rutEl)rutEl.value=f.rut||'';
+    const telEl=document.getElementById('field-telefono');
+    if(telEl)telEl.value=(f.telefono||'').replace(/^\+569\s?/,'');
+    // Restore date
+    const rawFecha=f._fechaRaw||'';
+    const fechaEl=document.getElementById('field-fecha');
+    if(fechaEl){
+      if(rawFecha){fechaEl.value=rawFecha;}
+      else if(f.fecha){
+        const p=(f.fecha||'').split('/');
+        if(p.length===3)fechaEl.value=p[2]+'-'+p[1]+'-'+p[0];
+      }
+    }
+    // Restore hour range
+    const parts=((f.hora||'').split(' a ').concat(['','']));
+    const inicio=document.getElementById('field-hora-inicio');if(inicio)inicio.value=parts[0]||'';
+    const fin=document.getElementById('field-hora-fin');if(fin)fin.value=parts[1]||'';
+    // Multi-selects
+    setSelectValue('salon',f.salon||'');
+    setSelectValue('pago',f.pago||'');
+  }
+
+  function saveQuotation(){
+    if(Object.keys(cart).length===0){showToast('⚠ Agrega productos antes de guardar');return;}
+    const all=getSaved();
+    const maxNum=all.reduce((m,q)=>Math.max(m,q.number||0),0);
+    const num=maxNum+1;
+    let pp=0;
+    Object.values(cart).forEach(i=>pp+=i.p*i.qty);
+    const fields=getFields();
+    const q={
+      id:Date.now(),
+      number:num,
+      savedAt:new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'}),
+      socio:fields.socio||'Sin nombre',
+      tipo:fields.tipo||'',
+      fecha:fields.fecha||'',
+      people:getPeople(),
+      pp,
+      total:pp*getPeople(),
+      cart:JSON.parse(JSON.stringify(cart)),
+      fields,
+      notes:document.getElementById('event-notes')?.value||''
+    };
+    all.unshift(q);
+    if(all.length>30)all.splice(30);
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(all));
+    budgetNumber=num;
+    updateHistoryBadge();
+    showToast('✓ Cotización N°'+num+' guardada');
+  }
+
+  function loadQuotation(id){
+    const q=getSaved().find(q=>q.id===id);
+    if(!q)return;
+    cart=JSON.parse(JSON.stringify(q.cart));
+    budgetNumber=q.number;
+    document.getElementById('people-count').value=q.people;
+    setFields(q.fields);
+    const notesEl=document.getElementById('event-notes');
+    if(notesEl)notesEl.value=q.notes||'';
+    closeHistory();
+    updateUI();
+    renderProducts();
+    showToast('Cotización N°'+q.number+' cargada');
+  }
+
+  function deleteQuotation(id,e){
+    e.stopPropagation();
+    if(!confirm('¿Eliminar esta cotización del historial?'))return;
+    const all=getSaved().filter(q=>q.id!==id);
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(all));
+    updateHistoryBadge();
+    renderHistory();
+  }
+
+  function newQuotation(){
+    if(Object.keys(cart).length>0&&!confirm('¿Crear cotización nueva? Se perderá lo actual.'))return;
+    cart={};
+    budgetNumber=getSaved().reduce((m,q)=>Math.max(m,q.number||0),0)+1;
+    document.getElementById('people-count').value=50;
+    ['socio','rut','tipo'].forEach(k=>{const el=document.getElementById('field-'+k);if(el)el.value='';});
+    const telEl=document.getElementById('field-telefono');if(telEl)telEl.value='';
+    const fechaEl=document.getElementById('field-fecha');if(fechaEl)fechaEl.value='';
+    const hi=document.getElementById('field-hora-inicio');if(hi)hi.value='';
+    const hf=document.getElementById('field-hora-fin');if(hf)hf.value='';
+    setSelectValue('salon','');setSelectValue('pago','');
+    closeHistory();
+    updateUI();
+    renderProducts();
+  }
+
+  function renderHistory(){
+    const list=document.getElementById('history-list');
+    const all=getSaved();
+    if(all.length===0){
+      list.innerHTML='<p style="color:#94a3b8;font-size:13px;text-align:center;padding:32px 0;line-height:1.6">No hay cotizaciones guardadas.<br><span style="font-size:11px">Usa el botón "Guardar cotización" en el carrito.</span></p>';
+      return;
+    }
+    list.innerHTML='';
+    all.forEach(q=>{
+      const card=document.createElement('div');
+      card.className='hq-card';
+      card.onclick=()=>loadQuotation(q.id);
+      card.innerHTML=`
+        <div style="width:36px;height:36px;border-radius:10px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex:none">
+          <span style="font-size:13px;font-weight:900;color:#1e40af">#${q.number}</span>
+        </div>
+        <div style="min-width:0;flex:1">
+          <p style="font-size:13px;font-weight:800;color:#0f172a;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${q.socio}${q.tipo?' · '+q.tipo:''}</p>
+          <p style="font-size:10px;color:#64748b;margin-top:2px">${q.people} personas · ${fmt(q.pp)}/pp · ${fmt(q.total)} total</p>
+          <p style="font-size:9px;color:#94a3b8;margin-top:1px">${q.fecha?q.fecha+' · ':''} Guardado ${q.savedAt}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none">
+          <span style="font-size:11px;font-weight:800;color:#1e40af">${fmt(q.total)}</span>
+          <button onclick="deleteQuotation(${q.id},event)" style="font-size:9px;font-weight:800;color:#f87171;background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em">Eliminar</button>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  function openHistory(){
+    renderHistory();
+    document.getElementById('history-modal').classList.add('open');
+  }
+  function closeHistory(){
+    document.getElementById('history-modal').classList.remove('open');
+  }
+
+  function updateHistoryBadge(){
+    const n=getSaved().length;
+    const badge=document.getElementById('history-count-badge');
+    if(badge){
+      badge.textContent=n;
+      badge.style.display=n>0?'flex':'none';
+    }
+  }
+
+  function showToast(msg){
+    const t=document.getElementById('save-toast');
+    t.textContent=msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2400);
+  }
+
+  // Close history modal clicking backdrop
+  document.getElementById('history-modal').addEventListener('click',function(e){
+    if(e.target===this)closeHistory();
+  });
+
   renderCategories();
   renderProducts();
   updateUI();
+  updateHistoryBadge();
 </script>
 </body>
 </html>
