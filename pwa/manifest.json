@@ -2,14 +2,14 @@
   "name": "Club de Suboficiales - Cotizador de Eventos",
   "short_name": "Cotizador",
   "description": "Cotizador de eventos del Club de Suboficiales de la Fuerza Aérea de Chile. Genera presupuestos profesionales.",
-  "start_url": "./index.html",
+  "start_url": "../index.html",
   "display": "standalone",
   "background_color": "#f1f5f9",
   "theme_color": "#1e40af",
   "orientation": "any",
   "icons": [
     {
-      "src": "./logo2.jpg",
+      "src": "../assets/logo2.jpg",
       "sizes": "any",
       "type": "image/jpeg",
       "purpose": "any"

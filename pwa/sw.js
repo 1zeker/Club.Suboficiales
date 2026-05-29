@@ -1,11 +1,11 @@
 // Club de Suboficiales — Service Worker (offline support)
-const CACHE_NAME = 'cds-cotizador-v2';
+const CACHE_NAME = 'cds-cotizador-v3';
 const LOCAL_ASSETS = [
-  './',
-  './index.html',
-  './logo2.jpg',
-  './calzada.jpg',
-  './manifest.json'
+  '../',
+  '../index.html',
+  '../assets/logo2.jpg',
+  '../assets/calzada.jpg',
+  '../pwa/manifest.json'
 ];
 
 // Install: cache local assets
@@ -47,7 +47,7 @@ self.addEventListener('fetch', event => {
         }).catch(() => {
           // If offline and not cached, return fallback for HTML
           if (event.request.destination === 'document') {
-            return caches.match('./index.html');
+            return caches.match('../index.html');
           }
         });
       })
