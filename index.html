@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -1388,6 +1388,10 @@
           <p id="header-total" style="font-size:16px;font-weight:900;color:#1e40af;line-height:1">$0</p>
         </div>
 
+        <button onclick="window.open('admin.html', '_blank')" title="Admin (Base de datos)"
+          style="width:32px;height:32px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;margin-right:4px">
+          <i class="fas fa-cog" style="color:#475569;font-size:11px"></i>
+        </button>
         <button onclick="openHistory()" title="Historial"
           style="width:32px;height:32px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;position:relative">
           <i class="fas fa-clock-rotate-left" style="color:#475569;font-size:11px"></i>
@@ -1976,7 +1980,8 @@
     };
 
     // ══ DATABASE ══
-    const DATABASE = {
+    const DB_KEY = 'cds_database_v1';
+    const DATABASE_DEFAULTS = {
       "Aperitivos": [
         { id: 366, n: "Amareto sour", p: 1500 }, { id: 371, n: "Bebida en lata c/a", p: 1400 },
         { id: 372, n: "Bebida en lata s/a", p: 1300 }, { id: 367, n: "Espumante demi sec aperitivo", p: 900 },
@@ -2058,6 +2063,14 @@
         { id: 389, n: "Tapadito ave pimentón", p: 700 }, { id: 390, n: "Tapadito salame queso crema y aceitunas", p: 700 }
       ]
     };
+    
+    let DATABASE;
+    try {
+      const storedDb = localStorage.getItem(DB_KEY);
+      DATABASE = storedDb ? JSON.parse(storedDb) : DATABASE_DEFAULTS;
+    } catch (e) {
+      DATABASE = DATABASE_DEFAULTS;
+    }
 
     // ══ STATE ══
     let cart = {}, childrenCart = {};

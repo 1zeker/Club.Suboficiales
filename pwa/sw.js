@@ -1,8 +1,9 @@
 // Club de Suboficiales — Service Worker (offline support)
-const CACHE_NAME = 'cds-cotizador-v3';
+const CACHE_NAME = 'cds-cotizador-v4';
 const LOCAL_ASSETS = [
   '../',
   '../index.html',
+  '../admin.html',
   '../assets/logo2.jpg',
   '../assets/calzada.jpg',
   '../pwa/manifest.json'

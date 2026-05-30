@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Valorización CLUB SOF</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { background: #111827; color: white; padding: 8px 6px; text-align: center; border: 1px solid #374151; font-weight: 700; }
+    td { padding: 4px 6px; border: 1px solid #e2e8f0; vertical-align: middle; }
+    
+    .editable-blue { background: #eff6ff; border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; width: 100%; text-align: right; outline: none; padding: 4px; border-radius: 4px; transition: all 0.2s; }
+    .editable-blue:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+    .editable-blue-text { background: #eff6ff; border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 600; width: 100%; text-align: left; outline: none; padding: 4px; border-radius: 4px; transition: all 0.2s; }
+    .editable-blue-text:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+    
+    .calc-green { background: #f0fdf4; color: #16a34a; text-align: right; font-weight: 800; }
+    .calc-yellow { background: #fef9c3; color: #ca8a04; text-align: right; font-weight: 800; }
+    .calc-red { background: #fef2f2; color: #dc2626; text-align: right; font-weight: 800; }
+    
+    .hdr { background: #0f172a; color: white; padding: 16px 20px; text-align: center; border-bottom: 4px solid #ca8a04; }
+    
+    .btn { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn:active { transform: scale(0.97); }
+    .btn-blue { background: #2563eb; color: white; }
+    .btn-blue:hover { background: #1d4ed8; }
+    .btn-green { background: #16a34a; color: white; }
+    .btn-green:hover { background: #15803d; }
+    .btn-red { background: #dc2626; color: white; }
+    .btn-red:hover { background: #b91c1c; }
+    .btn-gray { background: #e2e8f0; color: #475569; }
+    .btn-gray:hover { background: #cbd5e1; }
+    
+    .supuestos td:first-child { font-weight: 700; color: #334155; }
+    
+    .status-ok { background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 99px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    .status-warn { background: #fef9c3; color: #ca8a04; padding: 2px 6px; border-radius: 99px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    .status-err { background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 99px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="hdr">
+    <h1 class="text-xl font-bold tracking-wider">CLUB SOF — VALORIZACIÓN CARTA EVENTOS</h1>
+    <p class="text-xs text-slate-300 mt-1">Plantilla de costeo y fijación de precios / Margen, IVA, Transbank, Proyección IPC</p>
+  </div>
+  
+  <div class="px-4 md:px-6 py-3 flex flex-wrap gap-2 md:gap-3 bg-white border-b border-slate-200 shadow-sm items-center sticky top-0 z-50">
+    <button class="btn btn-gray flex-shrink-0" onclick="window.location.href='index.html'"><i class="fas fa-arrow-left"></i> Cotizador</button>
+    <div class="w-px h-6 bg-slate-200 mx-1"></div>
+    <button class="btn btn-blue" onclick="saveToLocalStorage()"><i class="fas fa-save"></i> Guardar Base de Datos</button>
+    <button class="btn btn-gray" onclick="exportJSON()"><i class="fas fa-file-export"></i> Exportar JSON</button>
+    <button class="btn btn-gray" onclick="document.getElementById('import-file').click()"><i class="fas fa-file-import"></i> Importar JSON</button>
+    <input type="file" id="import-file" style="display:none" onchange="importJSON(event)" accept=".json">
+    <span id="save-status" class="text-xs font-bold text-green-600 ml-2 opacity-0 transition-opacity">¡Guardado!</span>
+    
+    <button class="btn btn-red ml-auto flex-shrink-0" onclick="restoreDefaults()"><i class="fas fa-rotate-left"></i> Restaurar Originales</button>
+  </div>
+
+  <div class="p-3 md:p-6">
+    <!-- SUPUESTOS GENERALES -->
+    <div class="mb-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+      <div class="bg-[#0f172a] text-white p-2 mb-3 -mx-5 -mt-5 rounded-t-xl border-b-4 border-yellow-500 flex items-center gap-2">
+        <i class="fas fa-sliders-h ml-3"></i>
+        <h2 class="text-xs font-bold uppercase tracking-wider">Supuestos Generales — Edita solo las celdas en azul</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="supuestos w-full min-w-[500px] max-w-4xl mt-2">
+          <tr>
+          <td class="w-1/3 py-2 border-b">Margen de ganancia deseado (%)</td>
+          <td class="w-32 py-2 border-b"><input type="number" id="sup-margen" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Ganancia objetivo sobre el costo total del producto</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">IVA (%)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-iva" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Impuesto al valor agregado vigente en Chile</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">Comisión Transbank (%)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-tbk" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Comisión cobrada por Transbank sobre el precio final</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">Gas por plato (CLP)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-gas" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Aplica solo a productos de preparación caliente</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">Merma por plato (%)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-merma" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Producto de pérdida, peso, limpieza durante manipulación</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">Agua por plato (CLP)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-agua" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Estimado en base a 20 días trabajados al mes</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">Mano de obra por plato (CLP)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-mo" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Costo laboral proporcional — base 20 días al mes</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b">Otros indirectos (CLP)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-otros" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Insumos promedio del club por producto servido</td>
+        </tr>
+        <tr>
+          <td class="py-2 border-b bg-slate-50 font-bold">Total costos indirectos fijos</td>
+          <td class="py-2 border-b bg-slate-50 calc-green" id="sup-total-indir">0</td>
+          <td class="text-xs text-slate-500 italic py-2 border-b bg-slate-50">Suma de Gas + Agua + MO + Otros</td>
+        </tr>
+        </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- DB TABLE -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex gap-2 items-center text-xs font-bold text-slate-600 uppercase">
+          <i class="fas fa-filter text-slate-400"></i> Filtro:
+          <select id="cat-filter" class="p-1.5 border border-slate-300 rounded outline-none font-bold text-slate-700 focus:border-blue-500" onchange="renderTable()">
+            <option value="ALL">Todas las Categorías</option>
+          </select>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-blue" onclick="applyAllSuggested()"><i class="fas fa-check-double"></i> Aplicar Todos Sugeridos</button>
+          <button class="btn btn-green" onclick="addProduct()"><i class="fas fa-plus"></i> Añadir Producto</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table id="db-table">
+          <thead>
+            <tr>
+              <th class="w-12">COD.</th>
+              <th class="text-left w-64">PRODUCTO</th>
+              <th class="w-32">CAT.</th>
+              <th class="text-blue-200 w-24">COSTO<br>COMPRA (CLP)</th>
+              <th class="text-green-200 w-24">COSTOS<br>INDIR.</th>
+              <th class="text-green-200 w-24 border-r-2 border-slate-600">COSTO<br>TOTAL</th>
+              <th class="text-green-200 w-24">PRECIO<br>NETO</th>
+              <th class="text-green-200 w-24">PRECIO C/IVA<br>+ TRANSBANK</th>
+              <th class="text-green-200 w-24 border-r-2 border-slate-600">PRECIO<br>SUGERIDO</th>
+              <th class="text-blue-200 w-24">PRECIO<br>ACTUAL</th>
+              <th class="text-yellow-200 w-24">DIFERENCIA<br>(SUG-ACTUAL)</th>
+              <th class="w-20">ESTADO</th>
+              <th class="w-24">ACCIÓN</th>
+              <th class="w-10"></th>
+            </tr>
+          </thead>
+          <tbody id="tb-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+// --- CORE DATA & CONFIG ---
+const DB_KEY = 'cds_database_v1';
+const SUP_KEY = 'cds_supuestos_v1';
+
+const DATABASE_DEFAULTS = {
+  "Aperitivos": [
+    { id: 366, n: "Amareto sour", p: 1500, c: 733 }, { id: 371, n: "Bebida en lata c/a", p: 1400, c: 667 },
+    { id: 372, n: "Bebida en lata s/a", p: 1300, c: 666 }, { id: 367, n: "Espumante demi sec aperitivo", p: 900, c: 445 },
+    { id: 368, n: "Jugo natural de chirimoya aperitivo", p: 1200, c: 566 }, { id: 406, n: "Jugo natural de frambuesa aperitivo", p: 1200, c: 575 },
+    { id: 407, n: "Jugo natural de mango aperitivo", p: 1000, c: 507 }, { id: 369, n: "Mango sour aperitivo", p: 1000, c: 482 },
+    { id: 370, n: "Pisco sour aperitivo", p: 900, c: 433 }, { id: 192, n: "Ramazzotti", p: 4400, c: 2209 },
+    { id: 178, n: "Aperol", p: 3400, c: 1729 }, { id: 85, n: "Agua con gas", p: 700, c: 321 }, { id: 86, n: "Agua sin gas", p: 700, c: 355 }
+  ],
+  "Cóctel": [
+    { id: 303, n: "Brocheta camarón al ajillo", p: 1000, c: 500 }, { id: 314, n: "Brocheta camarón salsa teriyaki", p: 900, c: 450 },
+    { id: 304, n: "Brocheta carne salsa demi glase", p: 2000, c: 1000 }, { id: 305, n: "Brocheta de ave bbq", p: 800, c: 400 },
+    { id: 306, n: "Brocheta mixta ave carne salsa oriental", p: 2000, c: 1000 }, { id: 443, n: "Brocheta tomate cherry y queso de cabra", p: 200, c: 100 },
+    { id: 448, n: "Camarón apanado en salsa golf", p: 500, c: 250 }, { id: 442, n: "Ceviche de champiñón cóctel", p: 500, c: 250 },
+    { id: 308, n: "Ceviche de reineta camarón", p: 1100, c: 550 }, { id: 307, n: "Ceviche de reineta cóctel", p: 700, c: 350 },
+    { id: 309, n: "Ceviche de salmón cóctel", p: 1000, c: 500 }, { id: 310, n: "Ceviche mixto reineta y salmón cóctel", p: 1500, c: 750 },
+    { id: 403, n: "Crostini tomate baby pesto albahaca", p: 700, c: 350 }, { id: 311, n: "Crostini palmitos y mix de vegetales", p: 400, c: 200 },
+    { id: 315, n: "Crostini salmón ahumado", p: 1200, c: 600 }, { id: 312, n: "Empanadas de queso cóctel", p: 500, c: 250 },
+    { id: 313, n: "Mini albóndigas salsa de vino tinto dulce", p: 600, c: 300 }, { id: 450, n: "Mini carpaccio de zucchini", p: 600, c: 300 },
+    { id: 316, n: "Mini carpaccio de salmón ahumado", p: 1300, c: 650 }
+  ],
+  "Entradas": [
+    { id: 320, n: "Ceviche de champiñón entrada", p: 2200, c: 1100 }, { id: 451, n: "Ceviche de quinoa", p: 1500, c: 750 },
+    { id: 317, n: "Ceviche de reineta entrada", p: 4500, c: 2250 }, { id: 318, n: "Ceviche mixto reineta y salmón entrada", p: 5600, c: 2800 },
+    { id: 457, n: "Crepe relleno espinaca champiñón queso", p: 2400, c: 1200 }, { id: 321, n: "Crepes de ave choclo entrada", p: 2500, c: 1250 },
+    { id: 322, n: "Crepe espinaca choclo entrada", p: 2100, c: 1050 }, { id: 460, n: "Tartar de palmitos y palta", p: 2500, c: 1250 },
+    { id: 323, n: "Timbal jamón palta entrada", p: 2600, c: 1300 }, { id: 324, n: "Timbal jamón tomate choclo entrada", p: 2000, c: 1000 },
+    { id: 325, n: "Timbal palta camarón entrada", p: 4300, c: 2150 }, { id: 326, n: "Timbal palta reina entrada", p: 3100, c: 1550 },
+    { id: 458, n: "Trilogía de causas limeñas", p: 3400, c: 1700 }
+  ],
+  "Principales": [
+    { id: 455, n: "Champiñones rellenos ratatouille a la parmesana", p: 3200, c: 1600 }, { id: 327, n: "Filete de res", p: 9500, c: 4750 },
+    { id: 328, n: "Lomo de res", p: 8200, c: 4100 }, { id: 329, n: "Lomo saltado", p: 8300, c: 4150 },
+    { id: 373, n: "Menú niño", p: 8800, c: 4400 }, { id: 332, n: "Pechuga de ave rellena", p: 5300, c: 2650 },
+    { id: 330, n: "Pollo a la plancha", p: 4300, c: 2150 }, { id: 331, n: "Salmón a la mantequilla", p: 12600, c: 6300 },
+    { id: 408, n: "Suprema de ave apanada niños", p: 3800, c: 1900 }, { id: 334, n: "Vegetariano om. cham. queso", p: 3800, c: 1900 },
+    { id: 333, n: "Vegetariano", p: 3300, c: 1650 }, { id: 335, n: "Verduras salteadas papas rústicas", p: 2800, c: 1400 }
+  ],
+  "Postres": [
+    { id: 352, n: "Almendrado", p: 3000, c: 1500 }, { id: 353, n: "Celestino con helado", p: 2100, c: 1050 },
+    { id: 449, n: "Crema catalana", p: 1900, c: 950 }, { id: 354, n: "Leche asada", p: 1600, c: 800 },
+    { id: 459, n: "Mousse de chocolate vegano", p: 2000, c: 1000 }, { id: 355, n: "Pana cotta de café", p: 2000, c: 1000 },
+    { id: 356, n: "Pana cotta de manjar", p: 1800, c: 900 }, { id: 357, n: "Suspiro berries", p: 2500, c: 1250 },
+    { id: 477, n: "Copón de helado", p: 1700, c: 850 }, { id: 479, n: "Ensalada de frutas", p: 3000, c: 1500 },
+    { id: 447, n: "Turrón de vino tinto", p: 1500, c: 750 }
+  ],
+  "Bebidas Cena": [
+    { id: 10371, n: "Bebida en lata c/a cena", p: 1400, c: 700 }, { id: 10372, n: "Bebida en lata s/a cena", p: 1300, c: 650 },
+    { id: 10368, n: "Jugo natural de chirimoya cena", p: 1200, c: 600 }, { id: 10406, n: "Jugo natural de frambuesa cena", p: 1200, c: 600 },
+    { id: 10407, n: "Jugo natural de mango cena", p: 1000, c: 500 }, { id: 10085, n: "Agua con gas cena", p: 700, c: 350 },
+    { id: 10086, n: "Agua sin gas cena", p: 700, c: 350 }, { id: 132, n: "Copa de vino Santa Emiliana", p: 1200, c: 600 },
+    { id: 124, n: "Copa de vino Carmen Margoux", p: 1400, c: 700 }
+  ],
+  "Acompañamientos": [
+    { id: 463, n: "Cremoso de quinoa", p: 1500, c: 750 }, { id: 456, n: "Hummus de garbanzos", p: 800, c: 400 },
+    { id: 444, n: "Lasaña de verduras", p: 1600, c: 800 }, { id: 336, n: "Papas al ajillo", p: 1100, c: 550 },
+    { id: 337, n: "Papas al romero", p: 1000, c: 500 }, { id: 338, n: "Papas duquesas", p: 1000, c: 500 },
+    { id: 438, n: "Pastelera de choclo con verduras salteadas", p: 2000, c: 1000 }, { id: 405, n: "Pastelera de choclo", p: 2300, c: 1150 },
+    { id: 339, n: "Puré rústico", p: 1100, c: 550 }, { id: 340, n: "Risotto al vino tinto", p: 1300, c: 650 },
+    { id: 341, n: "Risotto de champiñón", p: 1900, c: 950 }, { id: 402, n: "Risotto de verduras", p: 1800, c: 900 },
+    { id: 421, n: "Verduras salteadas y papas al ajillo", p: 1100, c: 550 }, { id: 342, n: "Verduras salteadas", p: 1700, c: 850 }
+  ],
+  "Salsas": [
+    { id: 343, n: "Salsa de champiñón blanca", p: 1500, c: 750 }, { id: 350, n: "Salsa de champiñón española", p: 1700, c: 850 },
+    { id: 42, n: "Salsa de alcaparras", p: 1600, c: 800 }, { id: 344, n: "Salsa finas hierbas", p: 900, c: 450 },
+    { id: 446, n: "Salsa latte harvest", p: 300, c: 150 }, { id: 345, n: "Salsa mignón champiñón", p: 800, c: 400 },
+    { id: 346, n: "Salsa mostaza", p: 500, c: 250 }, { id: 347, n: "Salsa pimienta blanca", p: 400, c: 200 },
+    { id: 351, n: "Salsa pimienta española", p: 600, c: 300 }, { id: 348, n: "Salsa queso azul roquefort", p: 1100, c: 550 },
+    { id: 349, n: "Salsa vino tinto dulce", p: 400, c: 200 }
+  ],
+  "Café": [
+    { id: 391, n: "Café", p: 700, c: 350 }, { id: 441, n: "Café grande", p: 500, c: 250 }, { id: 360, n: "Café sachet", p: 400, c: 200 },
+    { id: 359, n: "Té de hierbas", p: 600, c: 300 }, { id: 392, n: "Té", p: 100, c: 50 }, { id: 361, n: "Té servicio", p: 700, c: 350 }
+  ],
+  "Decoraciones": [{ id: 454, n: "Crocante de queso", p: 300, c: 150 }, { id: 464, n: "Crujiente de arroz", p: 300, c: 150 }, { id: 462, n: "Tuile", p: 300, c: 150 }],
+  "Dressing": [{ id: 452, n: "Dressing de mango", p: 500, c: 250 }, { id: 461, n: "Dressing de pimientos asados", p: 400, c: 200 }],
+  "Sandwich": [
+    { id: 365, n: "Ave italiano", p: 4400, c: 2200 }, { id: 22, n: "Barros luco", p: 5100, c: 2550 },
+    { id: 364, n: "Chacarero", p: 4100, c: 2050 }, { id: 363, n: "Churrasco italiano", p: 4800, c: 2400 },
+    { id: 389, n: "Tapadito ave pimentón", p: 700, c: 350 }, { id: 390, n: "Tapadito salame queso crema y aceitunas", p: 700, c: 350 }
+  ]
+};
+
+const SUPUESTOS_DEFAULTS = {
+  margen: 60.00,
+  iva: 19.00,
+  tbk: 1.50,
+  gas: 0,
+  merma: 0,
+  agua: 0,
+  mo: 0,
+  otros: 0
+};
+
+let db = {};
+let sup = {};
+let flatProducts = [];
+
+// --- INIT ---
+function init() {
+  loadData();
+  populateCategories();
+  renderTable();
+}
+
+function loadData() {
+  try {
+    const sDb = localStorage.getItem(DB_KEY);
+    db = sDb ? JSON.parse(sDb) : JSON.parse(JSON.stringify(DATABASE_DEFAULTS));
+  } catch(e) { db = JSON.parse(JSON.stringify(DATABASE_DEFAULTS)); }
+  
+  // Note: Cost missing in defaults? For now I added `c:` roughly estimated (50% of price) as fallback for old DB data
+  // But let's ensure every product has a `c` (cost)
+  Object.keys(db).forEach(cat => {
+    db[cat].forEach(p => {
+      if(p.c === undefined) p.c = Math.round(p.p * 0.5); // Fallback assumption
+    });
+  });
+
+  try {
+    const sSup = localStorage.getItem(SUP_KEY);
+    sup = sSup ? JSON.parse(sSup) : JSON.parse(JSON.stringify(SUPUESTOS_DEFAULTS));
+  } catch(e) { sup = JSON.parse(JSON.stringify(SUPUESTOS_DEFAULTS)); }
+
+  // Update UI Inputs
+  document.getElementById('sup-margen').value = sup.margen;
+  document.getElementById('sup-iva').value = sup.iva;
+  document.getElementById('sup-tbk').value = sup.tbk;
+  document.getElementById('sup-gas').value = sup.gas;
+  document.getElementById('sup-merma').value = sup.merma;
+  document.getElementById('sup-agua').value = sup.agua;
+  document.getElementById('sup-mo').value = sup.mo;
+  document.getElementById('sup-otros').value = sup.otros;
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  localStorage.setItem(SUP_KEY, JSON.stringify(sup));
+  
+  const toast = document.getElementById('save-status');
+  toast.style.opacity = 1;
+  setTimeout(() => toast.style.opacity = 0, 2000);
+}
+
+function exportJSON() {
+  const data = { database: db, supuestos: sup };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `club_sof_bd_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if(data.database) db = data.database;
+      if(data.supuestos) sup = data.supuestos;
+      saveToLocalStorage();
+      init();
+      alert("Base de datos importada exitosamente");
+    } catch(err) {
+      alert("Error al importar: archivo inválido.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function restoreDefaults() {
+  if(!confirm("¿Seguro que deseas volver a los valores originales? Perderás todos los cambios no exportados.")) return;
+  db = JSON.parse(JSON.stringify(DATABASE_DEFAULTS));
+  sup = JSON.parse(JSON.stringify(SUPUESTOS_DEFAULTS));
+  saveToLocalStorage();
+  init();
+}
+
+function populateCategories() {
+  const sel = document.getElementById('cat-filter');
+  const cats = Object.keys(db);
+  let html = '<option value="ALL">Todas las Categorías</option>';
+  cats.forEach(c => html += `<option value="${c}">${c}</option>`);
+  sel.innerHTML = html;
+}
+
+// --- CALCS ---
+function recalc() {
+  // Read supuestos
+  sup.margen = parseFloat(document.getElementById('sup-margen').value) || 0;
+  sup.iva = parseFloat(document.getElementById('sup-iva').value) || 0;
+  sup.tbk = parseFloat(document.getElementById('sup-tbk').value) || 0;
+  sup.gas = parseFloat(document.getElementById('sup-gas').value) || 0;
+  sup.merma = parseFloat(document.getElementById('sup-merma').value) || 0;
+  sup.agua = parseFloat(document.getElementById('sup-agua').value) || 0;
+  sup.mo = parseFloat(document.getElementById('sup-mo').value) || 0;
+  sup.otros = parseFloat(document.getElementById('sup-otros').value) || 0;
+
+  const totalIndirFijos = sup.gas + sup.agua + sup.mo + sup.otros;
+  document.getElementById('sup-total-indir').innerText = fmt(totalIndirFijos);
+
+  renderTable();
+}
+
+function calcRow(costo) {
+  const indirectos = sup.gas + sup.agua + sup.mo + sup.otros + (costo * (sup.merma / 100));
+  const total = costo + indirectos;
+  const neto = total / (1 - (sup.margen / 100));
+  const civa_tbk = neto * (1 + (sup.iva / 100)) / (1 - (sup.tbk / 100));
+  const sugerido = Math.round(civa_tbk / 100) * 100;
+  return {
+    indirectos: Math.round(indirectos),
+    total: Math.round(total),
+    neto: Math.round(neto),
+    civa_tbk: Math.round(civa_tbk),
+    sugerido: sugerido
+  };
+}
+
+// --- RENDER ---
+function renderTable() {
+  const filter = document.getElementById('cat-filter').value;
+  flatProducts = [];
+  
+  Object.keys(db).forEach(cat => {
+    if(filter !== 'ALL' && filter !== cat) return;
+    db[cat].forEach((p, idx) => {
+      flatProducts.push({cat, idx, ...p});
+    });
+  });
+
+  const tbody = document.getElementById('tb-body');
+  let html = '';
+  
+  flatProducts.forEach(fp => {
+    const c = calcRow(fp.c);
+    const diff = c.sugerido - fp.p;
+    
+    let statusClass = 'status-ok';
+    let statusText = 'OK';
+    if(diff > 0) { statusClass = 'status-err'; statusText = 'BAJO'; }
+    else if(diff < -500) { statusClass = 'status-warn'; statusText = 'ALTO'; }
+
+    let diffClass = diff > 0 ? 'calc-red' : (diff < -500 ? 'calc-yellow' : 'calc-green');
+
+    html += `
+      <tr class="hover:bg-slate-50 transition-colors">
+        <td class="text-center font-mono text-slate-500">${fp.id}</td>
+        <td><input type="text" class="editable-blue-text" value="${fp.n}" onchange="updateProd('${fp.cat}', ${fp.idx}, 'n', this.value)"></td>
+        <td class="text-xs text-slate-600 font-bold">${fp.cat}</td>
+        
+        <td class="bg-blue-50 border-blue-100"><input type="number" class="editable-blue" value="${fp.c}" oninput="updateProd('${fp.cat}', ${fp.idx}, 'c', this.value)"></td>
+        <td class="calc-green">${fmt(c.indirectos)}</td>
+        <td class="calc-green border-r-2 border-slate-300 bg-green-50">${fmt(c.total)}</td>
+        <td class="calc-green">${fmt(c.neto)}</td>
+        <td class="calc-green">${fmt(c.civa_tbk)}</td>
+        <td class="calc-green text-green-700 bg-green-100 border-r-2 border-slate-300 font-black">${fmt(c.sugerido)}</td>
+        
+        <td class="bg-blue-50 border-blue-100"><input type="number" class="editable-blue" value="${fp.p}" oninput="updateProd('${fp.cat}', ${fp.idx}, 'p', this.value)"></td>
+        <td class="${diffClass}">${diff > 0 ? '+'+fmt(diff) : fmt(diff)}</td>
+        <td class="text-center"><span class="${statusClass}">${statusText}</span></td>
+        <td class="text-center">
+          ${diff !== 0 ? `<button class="btn btn-blue text-[9px] py-1 px-2" onclick="applySuggested('${fp.cat}', ${fp.idx}, ${c.sugerido})">Aplicar</button>` : ''}
+        </td>
+        <td class="text-center">
+          <button class="text-red-500 hover:text-red-700 p-1" title="Eliminar" onclick="deleteProd('${fp.cat}', ${fp.idx})"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+  });
+  
+  tbody.innerHTML = html;
+}
+
+function fmt(n) { return Math.round(n).toLocaleString('es-CL'); }
+
+// --- ACTIONS ---
+function updateProd(cat, idx, field, val) {
+  if(field === 'c' || field === 'p') val = parseFloat(val) || 0;
+  db[cat][idx][field] = val;
+  if(field === 'c' || field === 'p') renderTable(); // Recalc just to update row
+}
+
+function applySuggested(cat, idx, sugerido) {
+  db[cat][idx].p = sugerido;
+  renderTable();
+}
+
+function applyAllSuggested() {
+  if(!confirm("¿Aplicar precio sugerido a todos los productos mostrados?")) return;
+  flatProducts.forEach(fp => {
+    const c = calcRow(fp.c);
+    if(c.sugerido !== fp.p) {
+      db[fp.cat][fp.idx].p = c.sugerido;
+    }
+  });
+  renderTable();
+}
+
+function deleteProd(cat, idx) {
+  if(confirm(`¿Eliminar el producto ${db[cat][idx].n}?`)) {
+    db[cat].splice(idx, 1);
+    renderTable();
+  }
+}
+
+function addProduct() {
+  const name = prompt("Nombre del producto:");
+  if(!name) return;
+  
+  const catFilter = document.getElementById('cat-filter').value;
+  let cat = catFilter;
+  if(cat === 'ALL') {
+    const cats = Object.keys(db).join(", ");
+    cat = prompt(`¿A qué categoría? (${cats})\nO escribe una nueva:`);
+    if(!cat) return;
+  }
+  
+  if(!db[cat]) {
+    db[cat] = [];
+    populateCategories();
+    document.getElementById('cat-filter').value = cat;
+  }
+  
+  let maxId = 0;
+  Object.keys(db).forEach(c => db[c].forEach(p => maxId = Math.max(maxId, p.id)));
+  
+  const costo = parseFloat(prompt("Costo de compra estimado (CLP):")) || 0;
+  const p = { id: maxId + 1, n: name, c: costo, p: costo * 2 };
+  
+  db[cat].push(p);
+  renderTable();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
