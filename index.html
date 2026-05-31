@@ -141,16 +141,46 @@
       scrollbar-width: none
     }
 
+    /* Fields row — collapsible on mobile */
+    #fields-toggle-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      cursor: pointer;
+      user-select: none;
+    }
+    #fields-toggle-bar:hover { background: #f1f5f9; }
+
     #fields-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      padding: 16px;
+      display: none; /* hidden by default on mobile */
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 10px 12px 12px;
       background: white;
-      margin: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    #fields-row.open {
+      display: grid;
+    }
+    @media(min-width:640px) {
+      #fields-toggle-bar { display: none; }
+      #fields-row {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+        padding: 7px 12px 8px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+      }
+    }
+    @media(min-width:1024px) {
+      #fields-row {
+        grid-template-columns: repeat(9, 1fr);
+        padding-right: 296px;
+      }
     }
 
     #mobile-cat-bar::-webkit-scrollbar {
@@ -1412,14 +1442,24 @@
         </button>
       </div>
 
+      <!-- Fields toggle bar (mobile only) -->
+      <div id="fields-toggle-bar" onclick="toggleFieldsRow()" class="sm:hidden">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="fas fa-address-card" style="color:#3b82f6;font-size:12px"></i>
+          <span style="font-size:11px;font-weight:700;color:#0f172a">Datos del Evento</span>
+          <span id="fields-summary" style="font-size:10px;color:#64748b;font-style:italic"></span>
+        </div>
+        <i id="fields-toggle-icon" class="fas fa-chevron-down" style="font-size:10px;color:#94a3b8;transition:transform .2s"></i>
+      </div>
+
       <!-- Fields row -->
       <div id="fields-row">
-        <input id="field-socio" class="finput" placeholder="Nombre Cliente / Empresa" oninput="renderPrint()">
-        <input id="field-rut" class="finput" placeholder="RUT 12.345.678-9" maxlength="13" oninput="formatRut(this)">
+        <input id="field-socio" class="finput" placeholder="Nombre / Empresa" oninput="renderPrint();updateFieldsSummary()">
+        <input id="field-rut" class="finput" placeholder="RUT 12.345.678-9" maxlength="13" oninput="formatRut(this);updateFieldsSummary()">
         <div class="fphone"><span class="fphone-prefix">+569</span><input id="field-telefono" type="tel" maxlength="8"
-            placeholder="12345678" oninput="renderPrint()"></div>
-        <input id="field-tipo" class="finput" placeholder="Tipo de evento" oninput="renderPrint()">
-        <input id="field-fecha" class="finput" type="date" onchange="renderPrint()">
+            placeholder="12345678" oninput="renderPrint();updateFieldsSummary()"></div>
+        <input id="field-tipo" class="finput" placeholder="Tipo de evento" oninput="renderPrint();updateFieldsSummary()">
+        <input id="field-fecha" class="finput" type="date" onchange="renderPrint();updateFieldsSummary()">
         <div class="ftime"><input type="time" id="field-hora-inicio" oninput="renderPrint()"><span
             class="ftime-sep">→</span><input type="time" id="field-hora-fin" oninput="renderPrint()"></div>
         <div class="fselect" id="salon-selector">
@@ -2095,6 +2135,24 @@
       document.getElementById('presets-adultos').style.display = mode === 'adultos' ? 'flex' : 'none';
       document.getElementById('presets-ninos').style.display = mode === 'ninos' ? 'flex' : 'none';
       renderProducts();
+    }
+
+    /* ── FIELDS ROW TOGGLE (mobile) ── */
+    function toggleFieldsRow() {
+      const row = document.getElementById('fields-row');
+      const icon = document.getElementById('fields-toggle-icon');
+      const isOpen = row.classList.toggle('open');
+      if (icon) icon.style.transform = isOpen ? 'rotate(180deg)' : '';
+    }
+
+    function updateFieldsSummary() {
+      const sumEl = document.getElementById('fields-summary');
+      if (!sumEl) return;
+      const socio = document.getElementById('field-socio')?.value || '';
+      const tipo = document.getElementById('field-tipo')?.value || '';
+      const fecha = document.getElementById('field-fecha')?.value || '';
+      const parts = [socio, tipo, fecha ? new Date(fecha + 'T12:00').toLocaleDateString('es-CL', {day:'2-digit',month:'2-digit'}) : ''].filter(Boolean);
+      sumEl.textContent = parts.length ? '· ' + parts.join(' · ') : '';
     }
 
     /* ── AUTO-FILL OTROS ── */
