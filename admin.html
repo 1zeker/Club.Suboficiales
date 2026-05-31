@@ -110,6 +110,11 @@
           <td class="text-xs text-slate-500 italic py-2 border-b">Insumos promedio del club por producto servido</td>
         </tr>
         <tr>
+          <td class="py-2 border-b">IPC proyectado Chile (%)</td>
+          <td class="py-2 border-b"><input type="number" id="sup-ipc" class="editable-blue" oninput="recalc()"></td>
+          <td class="text-xs text-slate-500 italic py-2 border-b">Inflación trimestral proyectada (fuente: Banco Central)</td>
+        </tr>
+        <tr>
           <td class="py-2 border-b bg-slate-50 font-bold">Total costos indirectos fijos</td>
           <td class="py-2 border-b bg-slate-50 calc-green" id="sup-total-indir">0</td>
           <td class="text-xs text-slate-500 italic py-2 border-b bg-slate-50">Suma de Gas + Agua + MO + Otros</td>
@@ -124,7 +129,7 @@
       <div class="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
         <div class="flex gap-2 items-center text-xs font-bold text-slate-600 uppercase">
           <i class="fas fa-filter text-slate-400"></i> Filtro:
-          <select id="cat-filter" class="p-1.5 border border-slate-300 rounded outline-none font-bold text-slate-700 focus:border-blue-500" onchange="renderTable()">
+          <select id="cat-filter" class="p-1.5 border border-slate-300 rounded outline-none font-bold text-slate-700 focus:border-blue-500" onchange="handleCatFilter()">
             <option value="ALL">Todas las Categorías</option>
           </select>
         </div>
@@ -145,6 +150,7 @@
               <th class="text-green-200 w-24 border-r-2 border-slate-600">COSTO<br>TOTAL</th>
               <th class="text-green-200 w-24">PRECIO<br>NETO</th>
               <th class="text-green-200 w-24">PRECIO C/IVA<br>+ TRANSBANK</th>
+              <th class="text-purple-200 w-24">PRECIO<br>PROY. IPC</th>
               <th class="text-green-200 w-24 border-r-2 border-slate-600">PRECIO<br>SUGERIDO</th>
               <th class="text-blue-200 w-24">PRECIO<br>ACTUAL</th>
               <th class="text-yellow-200 w-24">DIFERENCIA<br>(SUG-ACTUAL)</th>
@@ -163,6 +169,7 @@
 // --- CORE DATA & CONFIG ---
 const DB_KEY = 'cds_database_v1';
 const SUP_KEY = 'cds_supuestos_v1';
+const SUP_OVERRIDES_KEY = 'cds_sup_overrides_v1';
 
 const DATABASE_DEFAULTS = {
   "Aperitivos": [
@@ -171,79 +178,83 @@ const DATABASE_DEFAULTS = {
     { id: 368, n: "Jugo natural de chirimoya aperitivo", p: 1200, c: 566 }, { id: 406, n: "Jugo natural de frambuesa aperitivo", p: 1200, c: 575 },
     { id: 407, n: "Jugo natural de mango aperitivo", p: 1000, c: 507 }, { id: 369, n: "Mango sour aperitivo", p: 1000, c: 482 },
     { id: 370, n: "Pisco sour aperitivo", p: 900, c: 433 }, { id: 192, n: "Ramazzotti", p: 4400, c: 2209 },
-    { id: 178, n: "Aperol", p: 3400, c: 1729 }, { id: 85, n: "Agua con gas", p: 700, c: 321 }, { id: 86, n: "Agua sin gas", p: 700, c: 355 }
+    { id: 178, n: "Aperol", p: 3400, c: 1729 }, { id: 85, n: "Agua con gas", p: 700, c: 321 }, { id: 86, n: "Agua sin gas", p: 700, c: 355 },
+    { id: 5001, n: "Pisco y Mango Sour (Promedio)", p: 950, c: 458 }, { id: 5002, n: "Bebida lata c/a y s/a (Promedio)", p: 1350, c: 667 },
+    { id: 5003, n: "Jugos naturales (Promedio)", p: 1133, c: 549 }
   ],
   "Cóctel": [
-    { id: 303, n: "Brocheta camarón al ajillo", p: 1000, c: 500 }, { id: 314, n: "Brocheta camarón salsa teriyaki", p: 900, c: 450 },
-    { id: 304, n: "Brocheta carne salsa demi glase", p: 2000, c: 1000 }, { id: 305, n: "Brocheta de ave bbq", p: 800, c: 400 },
-    { id: 306, n: "Brocheta mixta ave carne salsa oriental", p: 2000, c: 1000 }, { id: 443, n: "Brocheta tomate cherry y queso de cabra", p: 200, c: 100 },
-    { id: 448, n: "Camarón apanado en salsa golf", p: 500, c: 250 }, { id: 442, n: "Ceviche de champiñón cóctel", p: 500, c: 250 },
-    { id: 308, n: "Ceviche de reineta camarón", p: 1100, c: 550 }, { id: 307, n: "Ceviche de reineta cóctel", p: 700, c: 350 },
-    { id: 309, n: "Ceviche de salmón cóctel", p: 1000, c: 500 }, { id: 310, n: "Ceviche mixto reineta y salmón cóctel", p: 1500, c: 750 },
-    { id: 403, n: "Crostini tomate baby pesto albahaca", p: 700, c: 350 }, { id: 311, n: "Crostini palmitos y mix de vegetales", p: 400, c: 200 },
-    { id: 315, n: "Crostini salmón ahumado", p: 1200, c: 600 }, { id: 312, n: "Empanadas de queso cóctel", p: 500, c: 250 },
-    { id: 313, n: "Mini albóndigas salsa de vino tinto dulce", p: 600, c: 300 }, { id: 450, n: "Mini carpaccio de zucchini", p: 600, c: 300 },
-    { id: 316, n: "Mini carpaccio de salmón ahumado", p: 1300, c: 650 }
+    { id: 303, n: "Brocheta camarón al ajillo", p: 1000, c: 505 }, { id: 314, n: "Brocheta camarón salsa teriyaki", p: 900, c: 434 },
+    { id: 304, n: "Brocheta carne salsa demi glase", p: 2000, c: 997 }, { id: 305, n: "Brocheta de ave bbq", p: 800, c: 384 },
+    { id: 306, n: "Brocheta mixta ave carne salsa oriental", p: 2000, c: 997 }, { id: 443, n: "Brocheta tomate cherry y queso de cabra", p: 200, c: 75 },
+    { id: 448, n: "Camarón apanado en salsa golf", p: 500, c: 246 }, { id: 442, n: "Ceviche de champiñón cóctel", p: 500, c: 253 },
+    { id: 308, n: "Ceviche de reineta camarón", p: 1100, c: 518 }, { id: 307, n: "Ceviche de reineta cóctel", p: 700, c: 320 },
+    { id: 309, n: "Ceviche de salmón cóctel", p: 1000, c: 509 }, { id: 310, n: "Ceviche mixto reineta y salmón cóctel", p: 1500, c: 729 },
+    { id: 403, n: "Crostini tomate baby pesto albahaca", p: 700, c: 340 }, { id: 311, n: "Crostini palmitos y mix de vegetales", p: 400, c: 192 },
+    { id: 315, n: "Crostini salmón ahumado", p: 1200, c: 612 }, { id: 312, n: "Empanadas de queso cóctel", p: 500, c: 222 },
+    { id: 313, n: "Mini albóndigas salsa de vino tinto dulce", p: 600, c: 269 }, { id: 450, n: "Mini carpaccio de zucchini", p: 600, c: 301 },
+    { id: 316, n: "Mini carpaccio de salmón ahumado", p: 1300, c: 633 }
   ],
   "Entradas": [
-    { id: 320, n: "Ceviche de champiñón entrada", p: 2200, c: 1100 }, { id: 451, n: "Ceviche de quinoa", p: 1500, c: 750 },
-    { id: 317, n: "Ceviche de reineta entrada", p: 4500, c: 2250 }, { id: 318, n: "Ceviche mixto reineta y salmón entrada", p: 5600, c: 2800 },
-    { id: 457, n: "Crepe relleno espinaca champiñón queso", p: 2400, c: 1200 }, { id: 321, n: "Crepes de ave choclo entrada", p: 2500, c: 1250 },
-    { id: 322, n: "Crepe espinaca choclo entrada", p: 2100, c: 1050 }, { id: 460, n: "Tartar de palmitos y palta", p: 2500, c: 1250 },
-    { id: 323, n: "Timbal jamón palta entrada", p: 2600, c: 1300 }, { id: 324, n: "Timbal jamón tomate choclo entrada", p: 2000, c: 1000 },
-    { id: 325, n: "Timbal palta camarón entrada", p: 4300, c: 2150 }, { id: 326, n: "Timbal palta reina entrada", p: 3100, c: 1550 },
-    { id: 458, n: "Trilogía de causas limeñas", p: 3400, c: 1700 }
+    { id: 320, n: "Ceviche de champiñón entrada", p: 2200, c: 1101 }, { id: 451, n: "Ceviche de quinoa", p: 1500, c: 757 },
+    { id: 317, n: "Ceviche de reineta entrada", p: 4500, c: 2257 }, { id: 318, n: "Ceviche mixto reineta y salmón entrada", p: 5600, c: 2849 },
+    { id: 457, n: "Crepe relleno espinaca champiñón queso", p: 2400, c: 1181 }, { id: 321, n: "Crepes de ave choclo entrada", p: 2500, c: 1250 },
+    { id: 322, n: "Crepe espinaca choclo entrada", p: 2100, c: 1055 }, { id: 460, n: "Tartar de palmitos y palta", p: 2500, c: 1232 },
+    { id: 323, n: "Timbal jamón palta entrada", p: 2600, c: 1313 }, { id: 324, n: "Timbal jamón tomate choclo entrada", p: 2000, c: 978 },
+    { id: 325, n: "Timbal palta camarón entrada", p: 4300, c: 2168 }, { id: 326, n: "Timbal palta reina entrada", p: 3100, c: 1574 },
+    { id: 458, n: "Trilogía de causas limeñas", p: 3400, c: 1740 },
+    { id: 38, n: "Ensalada surtida individual", p: 900, c: 416 }, { id: 25, n: "Arroz", p: 400, c: 182 }, { id: 19, n: "A lo pobre", p: 2500, c: 1257 }
   ],
   "Principales": [
-    { id: 455, n: "Champiñones rellenos ratatouille a la parmesana", p: 3200, c: 1600 }, { id: 327, n: "Filete de res", p: 9500, c: 4750 },
-    { id: 328, n: "Lomo de res", p: 8200, c: 4100 }, { id: 329, n: "Lomo saltado", p: 8300, c: 4150 },
-    { id: 373, n: "Menú niño", p: 8800, c: 4400 }, { id: 332, n: "Pechuga de ave rellena", p: 5300, c: 2650 },
-    { id: 330, n: "Pollo a la plancha", p: 4300, c: 2150 }, { id: 331, n: "Salmón a la mantequilla", p: 12600, c: 6300 },
-    { id: 408, n: "Suprema de ave apanada niños", p: 3800, c: 1900 }, { id: 334, n: "Vegetariano om. cham. queso", p: 3800, c: 1900 },
-    { id: 333, n: "Vegetariano", p: 3300, c: 1650 }, { id: 335, n: "Verduras salteadas papas rústicas", p: 2800, c: 1400 }
+    { id: 455, n: "Champiñones rellenos ratatouille a la parmesana", p: 3200, c: 959 }, { id: 327, n: "Filete de res", p: 9500, c: 4196 },
+    { id: 328, n: "Lomo de res", p: 8200, c: 3556 }, { id: 329, n: "Lomo saltado", p: 8300, c: 3593 },
+    { id: 373, n: "Menú niño", p: 8800, c: 3872 }, { id: 332, n: "Pechuga de ave rellena", p: 5300, c: 2054 },
+    { id: 330, n: "Pollo a la plancha", p: 4300, c: 1519 }, { id: 331, n: "Salmón a la mantequilla", p: 12600, c: 5813 },
+    { id: 408, n: "Suprema de ave apanada niños", p: 3800, c: 1285 }, { id: 334, n: "Vegetariano om. cham. queso", p: 3800, c: 1274 },
+    { id: 333, n: "Vegetariano", p: 3300, c: 1086 }, { id: 335, n: "Verduras salteadas papas rústicas", p: 2800, c: 760 }
   ],
   "Postres": [
-    { id: 352, n: "Almendrado", p: 3000, c: 1500 }, { id: 353, n: "Celestino con helado", p: 2100, c: 1050 },
-    { id: 449, n: "Crema catalana", p: 1900, c: 950 }, { id: 354, n: "Leche asada", p: 1600, c: 800 },
-    { id: 459, n: "Mousse de chocolate vegano", p: 2000, c: 1000 }, { id: 355, n: "Pana cotta de café", p: 2000, c: 1000 },
-    { id: 356, n: "Pana cotta de manjar", p: 1800, c: 900 }, { id: 357, n: "Suspiro berries", p: 2500, c: 1250 },
-    { id: 477, n: "Copón de helado", p: 1700, c: 850 }, { id: 479, n: "Ensalada de frutas", p: 3000, c: 1500 },
-    { id: 447, n: "Turrón de vino tinto", p: 1500, c: 750 }
+    { id: 352, n: "Almendrado", p: 3000, c: 1494 }, { id: 353, n: "Celestino con helado", p: 2100, c: 1035 },
+    { id: 449, n: "Crema catalana", p: 1900, c: 950 }, { id: 354, n: "Leche asada", p: 1600, c: 818 },
+    { id: 459, n: "Mousse de chocolate vegano", p: 2000, c: 1009 }, { id: 355, n: "Pana cotta de café", p: 2000, c: 996 },
+    { id: 356, n: "Pana cotta de manjar", p: 1800, c: 875 }, { id: 357, n: "Suspiro berries", p: 2500, c: 1267 },
+    { id: 477, n: "Copón de helado", p: 1700, c: 866 }, { id: 479, n: "Ensalada de frutas", p: 3000, c: 1505 },
+    { id: 447, n: "Turrón de vino tinto", p: 1500, c: 757 }
   ],
   "Bebidas Cena": [
-    { id: 10371, n: "Bebida en lata c/a cena", p: 1400, c: 700 }, { id: 10372, n: "Bebida en lata s/a cena", p: 1300, c: 650 },
-    { id: 10368, n: "Jugo natural de chirimoya cena", p: 1200, c: 600 }, { id: 10406, n: "Jugo natural de frambuesa cena", p: 1200, c: 600 },
-    { id: 10407, n: "Jugo natural de mango cena", p: 1000, c: 500 }, { id: 10085, n: "Agua con gas cena", p: 700, c: 350 },
-    { id: 10086, n: "Agua sin gas cena", p: 700, c: 350 }, { id: 132, n: "Copa de vino Santa Emiliana", p: 1200, c: 600 },
-    { id: 124, n: "Copa de vino Carmen Margoux", p: 1400, c: 700 }
+    { id: 10371, n: "Bebida en lata c/a cena", p: 1400, c: 667 }, { id: 10372, n: "Bebida en lata s/a cena", p: 1300, c: 666 },
+    { id: 10368, n: "Jugo natural de chirimoya cena", p: 1200, c: 566 }, { id: 10406, n: "Jugo natural de frambuesa cena", p: 1200, c: 575 },
+    { id: 10407, n: "Jugo natural de mango cena", p: 1000, c: 507 }, { id: 10085, n: "Agua con gas cena", p: 700, c: 321 },
+    { id: 10086, n: "Agua sin gas cena", p: 700, c: 355 }, { id: 132, n: "Copa de vino Santa Emiliana", p: 1200, c: 601 },
+    { id: 124, n: "Copa de vino Carmen Margoux", p: 1400, c: 706 },
+    { id: 5004, n: "Bebida en lata c/a y s/a cena (Promedio)", p: 1350, c: 667 }, { id: 5005, n: "Jugos naturales cena (Promedio)", p: 1133, c: 549 }
   ],
   "Acompañamientos": [
-    { id: 463, n: "Cremoso de quinoa", p: 1500, c: 750 }, { id: 456, n: "Hummus de garbanzos", p: 800, c: 400 },
-    { id: 444, n: "Lasaña de verduras", p: 1600, c: 800 }, { id: 336, n: "Papas al ajillo", p: 1100, c: 550 },
-    { id: 337, n: "Papas al romero", p: 1000, c: 500 }, { id: 338, n: "Papas duquesas", p: 1000, c: 500 },
-    { id: 438, n: "Pastelera de choclo con verduras salteadas", p: 2000, c: 1000 }, { id: 405, n: "Pastelera de choclo", p: 2300, c: 1150 },
-    { id: 339, n: "Puré rústico", p: 1100, c: 550 }, { id: 340, n: "Risotto al vino tinto", p: 1300, c: 650 },
-    { id: 341, n: "Risotto de champiñón", p: 1900, c: 950 }, { id: 402, n: "Risotto de verduras", p: 1800, c: 900 },
-    { id: 421, n: "Verduras salteadas y papas al ajillo", p: 1100, c: 550 }, { id: 342, n: "Verduras salteadas", p: 1700, c: 850 }
+    { id: 463, n: "Cremoso de quinoa", p: 1500, c: 752 }, { id: 456, n: "Hummus de garbanzos", p: 800, c: 367 },
+    { id: 444, n: "Lasaña de verduras", p: 1600, c: 809 }, { id: 336, n: "Papas al ajillo", p: 1100, c: 517 },
+    { id: 337, n: "Papas al romero", p: 1000, c: 468 }, { id: 338, n: "Papas duquesas", p: 1000, c: 474 },
+    { id: 438, n: "Pastelera de choclo con verduras salteadas", p: 2000, c: 1012 }, { id: 405, n: "Pastelera de choclo", p: 2300, c: 1159 },
+    { id: 339, n: "Puré rústico", p: 1100, c: 528 }, { id: 340, n: "Risotto al vino tinto", p: 1300, c: 665 },
+    { id: 341, n: "Risotto de champiñón", p: 1900, c: 964 }, { id: 402, n: "Risotto de verduras", p: 1800, c: 917 },
+    { id: 421, n: "Verduras salteadas y papas al ajillo", p: 1100, c: 559 }, { id: 342, n: "Verduras salteadas", p: 1700, c: 865 }
   ],
   "Salsas": [
-    { id: 343, n: "Salsa de champiñón blanca", p: 1500, c: 750 }, { id: 350, n: "Salsa de champiñón española", p: 1700, c: 850 },
-    { id: 42, n: "Salsa de alcaparras", p: 1600, c: 800 }, { id: 344, n: "Salsa finas hierbas", p: 900, c: 450 },
-    { id: 446, n: "Salsa latte harvest", p: 300, c: 150 }, { id: 345, n: "Salsa mignón champiñón", p: 800, c: 400 },
-    { id: 346, n: "Salsa mostaza", p: 500, c: 250 }, { id: 347, n: "Salsa pimienta blanca", p: 400, c: 200 },
-    { id: 351, n: "Salsa pimienta española", p: 600, c: 300 }, { id: 348, n: "Salsa queso azul roquefort", p: 1100, c: 550 },
-    { id: 349, n: "Salsa vino tinto dulce", p: 400, c: 200 }
+    { id: 343, n: "Salsa de champiñón blanca", p: 1500, c: 759 }, { id: 350, n: "Salsa de champiñón española", p: 1700, c: 825 },
+    { id: 42, n: "Salsa de alcaparras", p: 1600, c: 783 }, { id: 344, n: "Salsa finas hierbas", p: 900, c: 452 },
+    { id: 446, n: "Salsa latte harvest", p: 300, c: 142 }, { id: 345, n: "Salsa mignón champiñón", p: 800, c: 409 },
+    { id: 346, n: "Salsa mostaza", p: 500, c: 209 }, { id: 347, n: "Salsa pimienta blanca", p: 400, c: 188 },
+    { id: 351, n: "Salsa pimienta española", p: 600, c: 276 }, { id: 348, n: "Salsa queso azul roquefort", p: 1100, c: 527 },
+    { id: 349, n: "Salsa vino tinto dulce", p: 400, c: 201 }
   ],
   "Café": [
-    { id: 391, n: "Café", p: 700, c: 350 }, { id: 441, n: "Café grande", p: 500, c: 250 }, { id: 360, n: "Café sachet", p: 400, c: 200 },
-    { id: 359, n: "Té de hierbas", p: 600, c: 300 }, { id: 392, n: "Té", p: 100, c: 50 }, { id: 361, n: "Té servicio", p: 700, c: 350 }
+    { id: 391, n: "Café", p: 700, c: 315 }, { id: 441, n: "Café grande", p: 500, c: 239 }, { id: 360, n: "Café sachet", p: 400, c: 154 },
+    { id: 359, n: "Té de hierbas", p: 600, c: 300 }, { id: 392, n: "Té", p: 100, c: 43 }, { id: 361, n: "Té servicio", p: 700, c: 325 }
   ],
   "Decoraciones": [{ id: 454, n: "Crocante de queso", p: 300, c: 150 }, { id: 464, n: "Crujiente de arroz", p: 300, c: 150 }, { id: 462, n: "Tuile", p: 300, c: 150 }],
-  "Dressing": [{ id: 452, n: "Dressing de mango", p: 500, c: 250 }, { id: 461, n: "Dressing de pimientos asados", p: 400, c: 200 }],
+  "Dressing": [{ id: 452, n: "Dressing de mango", p: 500, c: 209 }, { id: 461, n: "Dressing de pimientos asados", p: 400, c: 198 }],
   "Sandwich": [
-    { id: 365, n: "Ave italiano", p: 4400, c: 2200 }, { id: 22, n: "Barros luco", p: 5100, c: 2550 },
-    { id: 364, n: "Chacarero", p: 4100, c: 2050 }, { id: 363, n: "Churrasco italiano", p: 4800, c: 2400 },
-    { id: 389, n: "Tapadito ave pimentón", p: 700, c: 350 }, { id: 390, n: "Tapadito salame queso crema y aceitunas", p: 700, c: 350 }
+    { id: 365, n: "Ave italiano", p: 4400, c: 2254 }, { id: 22, n: "Barros luco", p: 5100, c: 2580 },
+    { id: 364, n: "Chacarero", p: 4100, c: 2051 }, { id: 363, n: "Churrasco italiano", p: 4800, c: 2412 },
+    { id: 389, n: "Tapadito ave pimentón", p: 700, c: 328 }, { id: 390, n: "Tapadito salame queso crema y aceitunas", p: 700, c: 336 }
   ]
 };
 
@@ -255,24 +266,35 @@ const SUPUESTOS_DEFAULTS = {
   merma: 0,
   agua: 0,
   mo: 0,
-  otros: 0
+  otros: 0,
+  ipc: 1.16
 };
 
 let db = {};
 let sup = {};
+let catOverrides = {};
 let flatProducts = [];
 
 // --- INIT ---
 function init() {
   loadData();
   populateCategories();
-  renderTable();
+  handleCatFilter();
 }
 
 function loadData() {
   try {
     const sDb = localStorage.getItem(DB_KEY);
     db = sDb ? JSON.parse(sDb) : JSON.parse(JSON.stringify(DATABASE_DEFAULTS));
+    // Sync defaults
+    Object.keys(DATABASE_DEFAULTS).forEach(cat => {
+      if (!db[cat]) db[cat] = [];
+      DATABASE_DEFAULTS[cat].forEach(defItem => {
+        if (!db[cat].find(i => i.id === defItem.id)) {
+          db[cat].push(JSON.parse(JSON.stringify(defItem)));
+        }
+      });
+    });
   } catch(e) { db = JSON.parse(JSON.stringify(DATABASE_DEFAULTS)); }
   
   // Note: Cost missing in defaults? For now I added `c:` roughly estimated (50% of price) as fallback for old DB data
@@ -287,21 +309,23 @@ function loadData() {
     const sSup = localStorage.getItem(SUP_KEY);
     sup = sSup ? JSON.parse(sSup) : JSON.parse(JSON.stringify(SUPUESTOS_DEFAULTS));
   } catch(e) { sup = JSON.parse(JSON.stringify(SUPUESTOS_DEFAULTS)); }
+  
+  try {
+    const sCatO = localStorage.getItem(SUP_OVERRIDES_KEY);
+    catOverrides = sCatO ? JSON.parse(sCatO) : {};
+  } catch(e) { catOverrides = {}; }
 
   // Update UI Inputs
   document.getElementById('sup-margen').value = sup.margen;
   document.getElementById('sup-iva').value = sup.iva;
   document.getElementById('sup-tbk').value = sup.tbk;
-  document.getElementById('sup-gas').value = sup.gas;
-  document.getElementById('sup-merma').value = sup.merma;
-  document.getElementById('sup-agua').value = sup.agua;
-  document.getElementById('sup-mo').value = sup.mo;
-  document.getElementById('sup-otros').value = sup.otros;
+  if(document.getElementById('sup-ipc')) document.getElementById('sup-ipc').value = sup.ipc !== undefined ? sup.ipc : 1.16;
 }
 
 function saveToLocalStorage() {
   localStorage.setItem(DB_KEY, JSON.stringify(db));
   localStorage.setItem(SUP_KEY, JSON.stringify(sup));
+  localStorage.setItem(SUP_OVERRIDES_KEY, JSON.stringify(catOverrides));
   
   const toast = document.getElementById('save-status');
   toast.style.opacity = 1;
@@ -327,6 +351,7 @@ function importJSON(e) {
       const data = JSON.parse(evt.target.result);
       if(data.database) db = data.database;
       if(data.supuestos) sup = data.supuestos;
+      if(data.catOverrides) catOverrides = data.catOverrides;
       saveToLocalStorage();
       init();
       alert("Base de datos importada exitosamente");
@@ -341,6 +366,7 @@ function restoreDefaults() {
   if(!confirm("¿Seguro que deseas volver a los valores originales? Perderás todos los cambios no exportados.")) return;
   db = JSON.parse(JSON.stringify(DATABASE_DEFAULTS));
   sup = JSON.parse(JSON.stringify(SUPUESTOS_DEFAULTS));
+  catOverrides = {};
   saveToLocalStorage();
   init();
 }
@@ -353,35 +379,67 @@ function populateCategories() {
   sel.innerHTML = html;
 }
 
+function handleCatFilter() {
+  const cat = document.getElementById('cat-filter').value;
+  const isAll = cat === 'ALL';
+  const inputs = ['sup-gas', 'sup-merma', 'sup-agua', 'sup-mo', 'sup-otros'];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    el.disabled = isAll;
+    if (isAll) {
+      el.value = '';
+      el.placeholder = 'Bloqueado (Filtra por categoría)';
+      el.style.backgroundColor = '#f1f5f9';
+    } else {
+      const o = catOverrides[cat] || { gas: 0, merma: 0, agua: 0, mo: 0, otros: 0 };
+      el.value = o[id.replace('sup-', '')] || 0;
+      el.placeholder = '';
+      el.style.backgroundColor = '';
+    }
+  });
+  recalc();
+}
+
 // --- CALCS ---
 function recalc() {
-  // Read supuestos
   sup.margen = parseFloat(document.getElementById('sup-margen').value) || 0;
   sup.iva = parseFloat(document.getElementById('sup-iva').value) || 0;
   sup.tbk = parseFloat(document.getElementById('sup-tbk').value) || 0;
-  sup.gas = parseFloat(document.getElementById('sup-gas').value) || 0;
-  sup.merma = parseFloat(document.getElementById('sup-merma').value) || 0;
-  sup.agua = parseFloat(document.getElementById('sup-agua').value) || 0;
-  sup.mo = parseFloat(document.getElementById('sup-mo').value) || 0;
-  sup.otros = parseFloat(document.getElementById('sup-otros').value) || 0;
+  if(document.getElementById('sup-ipc')) sup.ipc = parseFloat(document.getElementById('sup-ipc').value) || 0;
 
-  const totalIndirFijos = sup.gas + sup.agua + sup.mo + sup.otros;
+  const cat = document.getElementById('cat-filter').value;
+  if (cat !== 'ALL') {
+    if (!catOverrides[cat]) catOverrides[cat] = { gas: 0, merma: 0, agua: 0, mo: 0, otros: 0 };
+    catOverrides[cat].gas = parseFloat(document.getElementById('sup-gas').value) || 0;
+    catOverrides[cat].merma = parseFloat(document.getElementById('sup-merma').value) || 0;
+    catOverrides[cat].agua = parseFloat(document.getElementById('sup-agua').value) || 0;
+    catOverrides[cat].mo = parseFloat(document.getElementById('sup-mo').value) || 0;
+    catOverrides[cat].otros = parseFloat(document.getElementById('sup-otros').value) || 0;
+  }
+
+  const o = cat === 'ALL' ? { gas: 0, agua: 0, mo: 0, otros: 0 } : (catOverrides[cat] || { gas: 0, agua: 0, mo: 0, otros: 0 });
+  const totalIndirFijos = o.gas + o.agua + o.mo + o.otros;
   document.getElementById('sup-total-indir').innerText = fmt(totalIndirFijos);
 
+  saveToLocalStorage();
   renderTable();
 }
 
-function calcRow(costo) {
-  const indirectos = sup.gas + sup.agua + sup.mo + sup.otros + (costo * (sup.merma / 100));
+function calcRow(costo, cat) {
+  const o = catOverrides[cat] || { gas: 0, merma: 0, agua: 0, mo: 0, otros: 0 };
+  const indirectos = o.gas + o.agua + o.mo + o.otros + (costo * (o.merma / 100));
   const total = costo + indirectos;
-  const neto = total / (1 - (sup.margen / 100));
-  const civa_tbk = neto * (1 + (sup.iva / 100)) / (1 - (sup.tbk / 100));
-  const sugerido = Math.round(civa_tbk / 100) * 100;
+  // El Excel usa Markup en lugar de Margen sobre Venta (Costo * (1 + %))
+  const neto = total * (1 + (sup.margen / 100));
+  const civa_tbk = neto * (1 + (sup.iva / 100) + (sup.tbk / 100));
+  const proy = civa_tbk * (1 + ((sup.ipc || 1.16) / 100));
+  const sugerido = Math.round(proy / 100) * 100;
   return {
     indirectos: Math.round(indirectos),
     total: Math.round(total),
     neto: Math.round(neto),
     civa_tbk: Math.round(civa_tbk),
+    proy: Math.round(proy),
     sugerido: sugerido
   };
 }
@@ -402,7 +460,7 @@ function renderTable() {
   let html = '';
   
   flatProducts.forEach(fp => {
-    const c = calcRow(fp.c);
+    const c = calcRow(fp.c, fp.cat);
     const diff = c.sugerido - fp.p;
     
     let statusClass = 'status-ok';
@@ -423,6 +481,7 @@ function renderTable() {
         <td class="calc-green border-r-2 border-slate-300 bg-green-50">${fmt(c.total)}</td>
         <td class="calc-green">${fmt(c.neto)}</td>
         <td class="calc-green">${fmt(c.civa_tbk)}</td>
+        <td class="bg-purple-50 text-purple-700 font-bold text-right">${fmt(c.proy)}</td>
         <td class="calc-green text-green-700 bg-green-100 border-r-2 border-slate-300 font-black">${fmt(c.sugerido)}</td>
         
         <td class="bg-blue-50 border-blue-100"><input type="number" class="editable-blue" value="${fp.p}" oninput="updateProd('${fp.cat}', ${fp.idx}, 'p', this.value)"></td>
@@ -447,7 +506,8 @@ function fmt(n) { return Math.round(n).toLocaleString('es-CL'); }
 function updateProd(cat, idx, field, val) {
   if(field === 'c' || field === 'p') val = parseFloat(val) || 0;
   db[cat][idx][field] = val;
-  if(field === 'c' || field === 'p') renderTable(); // Recalc just to update row
+  saveToLocalStorage();
+  if(field === 'c' || field === 'p') renderTable(); 
 }
 
 function applySuggested(cat, idx, sugerido) {

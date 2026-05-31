@@ -1,5 +1,5 @@
 // Club de Suboficiales — Service Worker (offline support)
-const CACHE_NAME = 'cds-cotizador-v4';
+const CACHE_NAME = 'cds-cotizador-v5';
 const LOCAL_ASSETS = [
   '../',
   '../index.html',
@@ -9,7 +9,7 @@ const LOCAL_ASSETS = [
   '../pwa/manifest.json'
 ];
 
-// Install: cache local assets
+// Install: cache local assets and skip waiting immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -18,7 +18,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate: remove old caches
+// Activate: remove ALL old caches and claim clients immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -27,7 +27,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch: cache-first for local assets, network-first for external (fonts, CDN)
+// Fetch: NETWORK-FIRST for HTML/JS (ensures updates load), cache fallback for offline
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
@@ -35,24 +35,40 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   if (url.origin === location.origin) {
-    // Local files: cache first, fall back to network
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        return fetch(event.request).then(response => {
+    // Local HTML/JS files: network-first so updates always apply
+    const isDocument = event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname.endsWith('.js');
+
+    if (isDocument) {
+      event.respondWith(
+        fetch(event.request).then(response => {
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
           }
           return response;
         }).catch(() => {
-          // If offline and not cached, return fallback for HTML
-          if (event.request.destination === 'document') {
-            return caches.match('../index.html');
-          }
-        });
-      })
-    );
+          // Offline fallback: use cache
+          return caches.match(event.request).then(cached => {
+            return cached || caches.match('../index.html');
+          });
+        })
+      );
+    } else {
+      // Images and other static assets: cache-first (they don't change often)
+      event.respondWith(
+        caches.match(event.request).then(cached => {
+          if (cached) return cached;
+          return fetch(event.request).then(response => {
+            if (response && response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            }
+            return response;
+          });
+        })
+      );
+    }
   }
-  // External requests (Google Fonts, CDN): network first, no caching to avoid CORS issues
+  // External requests (Google Fonts, CDN): network only, no caching to avoid CORS issues
 });
+

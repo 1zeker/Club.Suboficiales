@@ -141,6 +141,18 @@
       scrollbar-width: none
     }
 
+    #fields-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 16px;
+      background: white;
+      margin: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
     #mobile-cat-bar::-webkit-scrollbar {
       display: none
     }
@@ -1059,11 +1071,13 @@
     /* ── MISC ── */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none
+      -webkit-appearance: none;
+      margin: 0;
     }
 
     input[type=number] {
-      -moz-appearance: textfield
+      -moz-appearance: textfield;
+      appearance: textfield;
     }
 
     input,
@@ -1085,27 +1099,6 @@
 
     #distribute-bar.active {
       display: flex
-    }
-
-    /* Fields row */
-    #fields-row {
-      display: grid;
-      gap: 5px;
-      padding: 7px 12px 8px;
-      grid-template-columns: repeat(2, 1fr)
-    }
-
-    @media(min-width:640px) {
-      #fields-row {
-        grid-template-columns: repeat(4, 1fr)
-      }
-    }
-
-    @media(min-width:1024px) {
-      #fields-row {
-        grid-template-columns: repeat(9, 1fr);
-        padding-right: 296px
-      }
     }
 
     .finput {
@@ -1407,6 +1400,10 @@
           style="align-items:center;gap:6px;background:#1e40af;color:white;border:none;padding:7px 13px;border-radius:9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap">
           <i class="fas fa-file-pdf"></i>PDF
         </button>
+        <button onclick="shareWhatsApp()" class="hidden lg:flex" title="Compartir WhatsApp"
+          style="align-items:center;gap:6px;background:#25D366;color:white;border:none;padding:7px 13px;border-radius:9px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap">
+          <i class="fab fa-whatsapp"></i>WhatsApp
+        </button>
         <button onclick="toggleDrawer()" class="lg:hidden"
           style="position:relative;width:32px;height:32px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none">
           <i class="fas fa-shopping-cart" style="color:#475569;font-size:11px"></i>
@@ -1417,7 +1414,7 @@
 
       <!-- Fields row -->
       <div id="fields-row">
-        <input id="field-socio" class="finput" placeholder="Socio" oninput="renderPrint()">
+        <input id="field-socio" class="finput" placeholder="Nombre Cliente / Empresa" oninput="renderPrint()">
         <input id="field-rut" class="finput" placeholder="RUT 12.345.678-9" maxlength="13" oninput="formatRut(this)">
         <div class="fphone"><span class="fphone-prefix">+569</span><input id="field-telefono" type="tel" maxlength="8"
             placeholder="12345678" oninput="renderPrint()"></div>
@@ -1492,18 +1489,18 @@
         <!-- PRESETS BAR (content depends on active mode) -->
         <div id="presets-wrap">
           <!-- Adultos presets (shown in adultos mode) -->
-          <div id="presets-adultos" style="display:flex;align-items:center;gap:6px;flex:1">
-            <span class="pbtn-label">Adultos:</span>
-            <button class="pbtn" onclick="loadPreset('basico')">🍽️ Básico</button>
-            <button class="pbtn" onclick="loadPreset('estandar')">🥂 Estándar</button>
-            <button class="pbtn" onclick="loadPreset('premium')">⭐ Premium</button>
+          <div id="presets-adultos" style="display:flex;align-items:center;gap:6px;flex:1;flex-wrap:wrap">
+            <span class="pbtn-label">Combos Sugeridos:</span>
+            <button class="pbtn" onclick="loadPreset('cena_clasica')">🍽️ Cena Clásica</button>
+            <button class="pbtn" onclick="loadPreset('matrimonio_premium')">🥂 Matrimonio Premium</button>
+            <button class="pbtn" onclick="loadPreset('aniversario')">⭐ Aniversario</button>
             <button class="pbtn" onclick="clearAll()" style="margin-left:auto;color:#ef4444;border-color:#fecaca"><i
-                class="fas fa-trash-can" style="font-size:9px"></i> Limpiar</button>
+                class="fas fa-trash"></i></button>
           </div>
           <!-- Niños presets (shown in niños mode) -->
           <div id="presets-ninos" style="display:none;align-items:center;gap:6px;flex:1">
             <span class="pbtn-label" style="color:#16a34a">Niños:</span>
-            <button class="pbtn pbtn-ninos" onclick="loadPreset('ninos')">👶 Menú Niños</button>
+            <button class="pbtn pbtn-ninos" onclick="loadPreset('ninos_basico')">👶 Menú Niños</button>
             <button class="pbtn" onclick="clearNinosCart()"
               style="margin-left:auto;color:#ef4444;border-color:#fecaca"><i class="fas fa-trash-can"
                 style="font-size:9px"></i> Limpiar niños</button>
@@ -1935,141 +1932,136 @@
 
     // ══ PRESETS ══
     const PRESETS = {
-      basico: {
-        label: 'Menú Básico', cart: 'adultos', items: [
-          { id: 370, cat: 'Aperitivos' }, { id: 85, cat: 'Aperitivos' },
-          { id: 307, cat: 'Cóctel' },
+      'cena_clasica': {
+        cart: 'adultos', label: 'Cena Clásica',
+        items: [{ id: 370, cat: 'Aperitivos' }, { id: 371, cat: 'Aperitivos' }, { id: 320, cat: 'Entradas' }, { id: 327, cat: 'Principales' }, { id: 354, cat: 'Postres' }]
+      },
+      'matrimonio_premium': {
+        cart: 'adultos', label: 'Matrimonio Premium',
+        items: [{ id: 5001, cat: 'Aperitivos' }, { id: 5002, cat: 'Aperitivos' }, { id: 5003, cat: 'Aperitivos' }, { id: 318, cat: 'Entradas' }, { id: 331, cat: 'Principales' }, { id: 357, cat: 'Postres' }, { id: 124, cat: 'Bebidas Cena' }, { id: 5004, cat: 'Bebidas Cena' }]
+      },
+      'aniversario': {
+        cart: 'adultos', label: 'Aniversario',
+        items: [{ id: 178, cat: 'Aperitivos' }, { id: 316, cat: 'Cóctel' }, { id: 328, cat: 'Principales' }, { id: 341, cat: 'Acompañamientos' }, { id: 449, cat: 'Postres' }, { id: 132, cat: 'Bebidas Cena' }]
+      },
+      'ninos_basico': {
+        cart: 'ninos', label: 'Menú Niños',
+        items: [
+          { id: 407, cat: 'Aperitivos' },
+          { id: 312, cat: 'Cóctel', qty: 2 },
           { id: 330, cat: 'Principales' },
           { id: 337, cat: 'Acompañamientos' },
-          { id: 354, cat: 'Postres' },
-          { id: 391, cat: 'Café' }
+          { id: 477, cat: 'Postres' },
+          { id: 10407, cat: 'Bebidas Cena' }
         ]
-      },
-      estandar: {
-        label: 'Menú Estándar', cart: 'adultos', items: [
-          { id: 370, cat: 'Aperitivos' }, { id: 368, cat: 'Aperitivos' }, { id: 85, cat: 'Aperitivos' },
-          { id: 307, cat: 'Cóctel' }, { id: 312, cat: 'Cóctel' },
-          { id: 323, cat: 'Entradas' },
-          { id: 328, cat: 'Principales' },
-          { id: 337, cat: 'Acompañamientos' }, { id: 344, cat: 'Salsas' },
-          { id: 356, cat: 'Postres' }, { id: 391, cat: 'Café' }
-        ]
-      },
-      premium: {
-        label: 'Menú Premium', cart: 'adultos', items: [
-          { id: 192, cat: 'Aperitivos' }, { id: 370, cat: 'Aperitivos' }, { id: 85, cat: 'Aperitivos' },
-          { id: 132, cat: 'Bebidas Cena' },
-          { id: 316, cat: 'Cóctel' }, { id: 303, cat: 'Cóctel' },
-          { id: 318, cat: 'Entradas' },
-          { id: 331, cat: 'Principales' },
-          { id: 341, cat: 'Acompañamientos' }, { id: 343, cat: 'Salsas' },
-          { id: 357, cat: 'Postres' }, { id: 441, cat: 'Café' }
-        ]
-      },
-      // Menú niños: ~$11.000/pp
-      ninos: {
-        label: 'Menú Niños', cart: 'ninos', items: [
-          { id: 407, cat: 'Aperitivos' },          // Jugo mango $1.000
-          { id: 312, cat: 'Cóctel', qty: 2 },        // 2x Empanadas $1.000
-          { id: 330, cat: 'Principales' },         // Pollo a la plancha $4.300
-          { id: 337, cat: 'Acompañamientos' },     // Papas al romero $1.000
-          { id: 477, cat: 'Postres' },             // Copón de helado $1.700
-          { id: 10407, cat: 'Bebidas Cena' }       // Jugo mango cena $1.000
-        ]
-      }                                    // TOTAL: $11.000/pp ✓
+      }
     };
 
     // ══ DATABASE ══
     const DB_KEY = 'cds_database_v1';
     const DATABASE_DEFAULTS = {
       "Aperitivos": [
-        { id: 366, n: "Amareto sour", p: 1500 }, { id: 371, n: "Bebida en lata c/a", p: 1400 },
-        { id: 372, n: "Bebida en lata s/a", p: 1300 }, { id: 367, n: "Espumante demi sec aperitivo", p: 900 },
-        { id: 368, n: "Jugo natural de chirimoya aperitivo", p: 1200 }, { id: 406, n: "Jugo natural de frambuesa aperitivo", p: 1200 },
-        { id: 407, n: "Jugo natural de mango aperitivo", p: 1000 }, { id: 369, n: "Mango sour aperitivo", p: 1000 },
-        { id: 370, n: "Pisco sour aperitivo", p: 900 }, { id: 192, n: "Ramazzotti", p: 4400 },
-        { id: 178, n: "Aperol", p: 3400 }, { id: 85, n: "Agua con gas", p: 700 }, { id: 86, n: "Agua sin gas", p: 700 }
+        { id: 366, n: "Amareto sour", p: 1500, c: 733 }, { id: 371, n: "Bebida en lata c/a", p: 1400, c: 667 },
+        { id: 372, n: "Bebida en lata s/a", p: 1300, c: 666 }, { id: 367, n: "Espumante demi sec aperitivo", p: 900, c: 445 },
+        { id: 368, n: "Jugo natural de chirimoya aperitivo", p: 1200, c: 566 }, { id: 406, n: "Jugo natural de frambuesa aperitivo", p: 1200, c: 575 },
+        { id: 407, n: "Jugo natural de mango aperitivo", p: 1000, c: 507 }, { id: 369, n: "Mango sour aperitivo", p: 1000, c: 482 },
+        { id: 370, n: "Pisco sour aperitivo", p: 900, c: 433 }, { id: 192, n: "Ramazzotti", p: 4400, c: 2209 },
+        { id: 178, n: "Aperol", p: 3400, c: 1729 }, { id: 85, n: "Agua con gas", p: 700, c: 321 }, { id: 86, n: "Agua sin gas", p: 700, c: 355 },
+        { id: 5001, n: "Pisco y Mango Sour (Promedio)", p: 950, c: 458 }, { id: 5002, n: "Bebida lata c/a y s/a (Promedio)", p: 1350, c: 667 },
+        { id: 5003, n: "Jugos naturales (Promedio)", p: 1133, c: 549 }
       ],
       "Cóctel": [
-        { id: 303, n: "Brocheta camarón al ajillo", p: 1000 }, { id: 314, n: "Brocheta camarón salsa teriyaki", p: 900 },
-        { id: 304, n: "Brocheta carne salsa demi glase", p: 2000 }, { id: 305, n: "Brocheta de ave bbq", p: 800 },
-        { id: 306, n: "Brocheta mixta ave carne salsa oriental", p: 2000 }, { id: 443, n: "Brocheta tomate cherry y queso de cabra", p: 200 },
-        { id: 448, n: "Camarón apanado en salsa golf", p: 500 }, { id: 442, n: "Ceviche de champiñón cóctel", p: 500 },
-        { id: 308, n: "Ceviche de reineta camarón", p: 1100 }, { id: 307, n: "Ceviche de reineta cóctel", p: 700 },
-        { id: 309, n: "Ceviche de salmón cóctel", p: 1000 }, { id: 310, n: "Ceviche mixto reineta y salmón cóctel", p: 1500 },
-        { id: 403, n: "Crostini tomate baby pesto albahaca", p: 700 }, { id: 311, n: "Crostini palmitos y mix de vegetales", p: 400 },
-        { id: 315, n: "Crostini salmón ahumado", p: 1200 }, { id: 312, n: "Empanadas de queso cóctel", p: 500 },
-        { id: 313, n: "Mini albóndigas salsa de vino tinto dulce", p: 600 }, { id: 450, n: "Mini carpaccio de zucchini", p: 600 },
-        { id: 316, n: "Mini carpaccio de salmón ahumado", p: 1300 }
+        { id: 303, n: "Brocheta camarón al ajillo", p: 1000, c: 505 }, { id: 314, n: "Brocheta camarón salsa teriyaki", p: 900, c: 434 },
+        { id: 304, n: "Brocheta carne salsa demi glase", p: 2000, c: 997 }, { id: 305, n: "Brocheta de ave bbq", p: 800, c: 384 },
+        { id: 306, n: "Brocheta mixta ave carne salsa oriental", p: 2000, c: 997 }, { id: 443, n: "Brocheta tomate cherry y queso de cabra", p: 200, c: 75 },
+        { id: 448, n: "Camarón apanado en salsa golf", p: 500, c: 246 }, { id: 442, n: "Ceviche de champiñón cóctel", p: 500, c: 253 },
+        { id: 308, n: "Ceviche de reineta camarón", p: 1100, c: 518 }, { id: 307, n: "Ceviche de reineta cóctel", p: 700, c: 320 },
+        { id: 309, n: "Ceviche de salmón cóctel", p: 1000, c: 509 }, { id: 310, n: "Ceviche mixto reineta y salmón cóctel", p: 1500, c: 729 },
+        { id: 403, n: "Crostini tomate baby pesto albahaca", p: 700, c: 340 }, { id: 311, n: "Crostini palmitos y mix de vegetales", p: 400, c: 192 },
+        { id: 315, n: "Crostini salmón ahumado", p: 1200, c: 612 }, { id: 312, n: "Empanadas de queso cóctel", p: 500, c: 222 },
+        { id: 313, n: "Mini albóndigas salsa de vino tinto dulce", p: 600, c: 269 }, { id: 450, n: "Mini carpaccio de zucchini", p: 600, c: 301 },
+        { id: 316, n: "Mini carpaccio de salmón ahumado", p: 1300, c: 633 }
       ],
       "Entradas": [
-        { id: 320, n: "Ceviche de champiñón entrada", p: 2200 }, { id: 451, n: "Ceviche de quinoa", p: 1500 },
-        { id: 317, n: "Ceviche de reineta entrada", p: 4500 }, { id: 318, n: "Ceviche mixto reineta y salmón entrada", p: 5600 },
-        { id: 457, n: "Crepe relleno espinaca champiñón queso", p: 2400 }, { id: 321, n: "Crepes de ave choclo entrada", p: 2500 },
-        { id: 322, n: "Crepe espinaca choclo entrada", p: 2100 }, { id: 460, n: "Tartar de palmitos y palta", p: 2500 },
-        { id: 323, n: "Timbal jamón palta entrada", p: 2600 }, { id: 324, n: "Timbal jamón tomate choclo entrada", p: 2000 },
-        { id: 325, n: "Timbal palta camarón entrada", p: 4300 }, { id: 326, n: "Timbal palta reina entrada", p: 3100 },
-        { id: 458, n: "Trilogía de causas limeñas", p: 3400 }
+        { id: 320, n: "Ceviche de champiñón entrada", p: 2200, c: 1101 }, { id: 451, n: "Ceviche de quinoa", p: 1500, c: 757 },
+        { id: 317, n: "Ceviche de reineta entrada", p: 4500, c: 2257 }, { id: 318, n: "Ceviche mixto reineta y salmón entrada", p: 5600, c: 2849 },
+        { id: 457, n: "Crepe relleno espinaca champiñón queso", p: 2400, c: 1181 }, { id: 321, n: "Crepes de ave choclo entrada", p: 2500, c: 1250 },
+        { id: 322, n: "Crepe espinaca choclo entrada", p: 2100, c: 1055 }, { id: 460, n: "Tartar de palmitos y palta", p: 2500, c: 1232 },
+        { id: 323, n: "Timbal jamón palta entrada", p: 2600, c: 1313 }, { id: 324, n: "Timbal jamón tomate choclo entrada", p: 2000, c: 978 },
+        { id: 325, n: "Timbal palta camarón entrada", p: 4300, c: 2168 }, { id: 326, n: "Timbal palta reina entrada", p: 3100, c: 1574 },
+        { id: 458, n: "Trilogía de causas limeñas", p: 3400, c: 1740 },
+        { id: 38, n: "Ensalada surtida individual", p: 900, c: 416 }, { id: 25, n: "Arroz", p: 400, c: 182 }, { id: 19, n: "A lo pobre", p: 2500, c: 1257 }
       ],
       "Principales": [
-        { id: 455, n: "Champiñones rellenos ratatouille a la parmesana", p: 3200 }, { id: 327, n: "Filete de res", p: 9500 },
-        { id: 328, n: "Lomo de res", p: 8200 }, { id: 329, n: "Lomo saltado", p: 8300 },
-        { id: 373, n: "Menú niño", p: 8800 }, { id: 332, n: "Pechuga de ave rellena", p: 5300 },
-        { id: 330, n: "Pollo a la plancha", p: 4300 }, { id: 331, n: "Salmón a la mantequilla", p: 12600 },
-        { id: 408, n: "Suprema de ave apanada niños", p: 3800 }, { id: 334, n: "Vegetariano om. cham. queso", p: 3800 },
-        { id: 333, n: "Vegetariano", p: 3300 }, { id: 335, n: "Verduras salteadas papas rústicas", p: 2800 }
+        { id: 455, n: "Champiñones rellenos ratatouille a la parmesana", p: 3200, c: 959 }, { id: 327, n: "Filete de res", p: 9500, c: 4196 },
+        { id: 328, n: "Lomo de res", p: 8200, c: 3556 }, { id: 329, n: "Lomo saltado", p: 8300, c: 3593 },
+        { id: 373, n: "Menú niño", p: 8800, c: 3872 }, { id: 332, n: "Pechuga de ave rellena", p: 5300, c: 2054 },
+        { id: 330, n: "Pollo a la plancha", p: 4300, c: 1519 }, { id: 331, n: "Salmón a la mantequilla", p: 12600, c: 5813 },
+        { id: 408, n: "Suprema de ave apanada niños", p: 3800, c: 1285 }, { id: 334, n: "Vegetariano om. cham. queso", p: 3800, c: 1274 },
+        { id: 333, n: "Vegetariano", p: 3300, c: 1086 }, { id: 335, n: "Verduras salteadas papas rústicas", p: 2800, c: 760 }
       ],
       "Postres": [
-        { id: 352, n: "Almendrado", p: 3000 }, { id: 353, n: "Celestino con helado", p: 2100 },
-        { id: 449, n: "Crema catalana", p: 1900 }, { id: 354, n: "Leche asada", p: 1600 },
-        { id: 459, n: "Mousse de chocolate vegano", p: 2000 }, { id: 355, n: "Pana cotta de café", p: 2000 },
-        { id: 356, n: "Pana cotta de manjar", p: 1800 }, { id: 357, n: "Suspiro berries", p: 2500 },
-        { id: 477, n: "Copón de helado", p: 1700 }, { id: 479, n: "Ensalada de frutas", p: 3000 },
-        { id: 447, n: "Turrón de vino tinto", p: 1500 }
+        { id: 352, n: "Almendrado", p: 3000, c: 1494 }, { id: 353, n: "Celestino con helado", p: 2100, c: 1035 },
+        { id: 449, n: "Crema catalana", p: 1900, c: 950 }, { id: 354, n: "Leche asada", p: 1600, c: 818 },
+        { id: 459, n: "Mousse de chocolate vegano", p: 2000, c: 1009 }, { id: 355, n: "Pana cotta de café", p: 2000, c: 996 },
+        { id: 356, n: "Pana cotta de manjar", p: 1800, c: 875 }, { id: 357, n: "Suspiro berries", p: 2500, c: 1267 },
+        { id: 477, n: "Copón de helado", p: 1700, c: 866 }, { id: 479, n: "Ensalada de frutas", p: 3000, c: 1505 },
+        { id: 447, n: "Turrón de vino tinto", p: 1500, c: 757 }
       ],
       "Bebidas Cena": [
-        { id: 10371, n: "Bebida en lata c/a cena", p: 1400 }, { id: 10372, n: "Bebida en lata s/a cena", p: 1300 },
-        { id: 10368, n: "Jugo natural de chirimoya cena", p: 1200 }, { id: 10406, n: "Jugo natural de frambuesa cena", p: 1200 },
-        { id: 10407, n: "Jugo natural de mango cena", p: 1000 }, { id: 10085, n: "Agua con gas cena", p: 700 },
-        { id: 10086, n: "Agua sin gas cena", p: 700 }, { id: 132, n: "Copa de vino Santa Emiliana", p: 1200 },
-        { id: 124, n: "Copa de vino Carmen Margoux", p: 1400 }
+        { id: 10371, n: "Bebida en lata c/a cena", p: 1400, c: 667 }, { id: 10372, n: "Bebida en lata s/a cena", p: 1300, c: 666 },
+        { id: 10368, n: "Jugo natural de chirimoya cena", p: 1200, c: 566 }, { id: 10406, n: "Jugo natural de frambuesa cena", p: 1200, c: 575 },
+        { id: 10407, n: "Jugo natural de mango cena", p: 1000, c: 507 }, { id: 10085, n: "Agua con gas cena", p: 700, c: 321 },
+        { id: 10086, n: "Agua sin gas cena", p: 700, c: 355 }, { id: 132, n: "Copa de vino Santa Emiliana", p: 1200, c: 601 },
+        { id: 124, n: "Copa de vino Carmen Margoux", p: 1400, c: 706 },
+        { id: 5004, n: "Bebida en lata c/a y s/a cena (Promedio)", p: 1350, c: 667 }, { id: 5005, n: "Jugos naturales cena (Promedio)", p: 1133, c: 549 }
       ],
       "Acompañamientos": [
-        { id: 463, n: "Cremoso de quinoa", p: 1500 }, { id: 456, n: "Hummus de garbanzos", p: 800 },
-        { id: 444, n: "Lasaña de verduras", p: 1600 }, { id: 336, n: "Papas al ajillo", p: 1100 },
-        { id: 337, n: "Papas al romero", p: 1000 }, { id: 338, n: "Papas duquesas", p: 1000 },
-        { id: 438, n: "Pastelera de choclo con verduras salteadas", p: 2000 }, { id: 405, n: "Pastelera de choclo", p: 2300 },
-        { id: 339, n: "Puré rústico", p: 1100 }, { id: 340, n: "Risotto al vino tinto", p: 1300 },
-        { id: 341, n: "Risotto de champiñón", p: 1900 }, { id: 402, n: "Risotto de verduras", p: 1800 },
-        { id: 421, n: "Verduras salteadas y papas al ajillo", p: 1100 }, { id: 342, n: "Verduras salteadas", p: 1700 }
+        { id: 463, n: "Cremoso de quinoa", p: 1500, c: 752 }, { id: 456, n: "Hummus de garbanzos", p: 800, c: 367 },
+        { id: 444, n: "Lasaña de verduras", p: 1600, c: 809 }, { id: 336, n: "Papas al ajillo", p: 1100, c: 517 },
+        { id: 337, n: "Papas al romero", p: 1000, c: 468 }, { id: 338, n: "Papas duquesas", p: 1000, c: 474 },
+        { id: 438, n: "Pastelera de choclo con verduras salteadas", p: 2000, c: 1012 }, { id: 405, n: "Pastelera de choclo", p: 2300, c: 1159 },
+        { id: 339, n: "Puré rústico", p: 1100, c: 528 }, { id: 340, n: "Risotto al vino tinto", p: 1300, c: 665 },
+        { id: 341, n: "Risotto de champiñón", p: 1900, c: 964 }, { id: 402, n: "Risotto de verduras", p: 1800, c: 917 },
+        { id: 421, n: "Verduras salteadas y papas al ajillo", p: 1100, c: 559 }, { id: 342, n: "Verduras salteadas", p: 1700, c: 865 }
       ],
       "Salsas": [
-        { id: 343, n: "Salsa de champiñón blanca", p: 1500 }, { id: 350, n: "Salsa de champiñón española", p: 1700 },
-        { id: 42, n: "Salsa de alcaparras", p: 1600 }, { id: 344, n: "Salsa finas hierbas", p: 900 },
-        { id: 446, n: "Salsa latte harvest", p: 300 }, { id: 345, n: "Salsa mignón champiñón", p: 800 },
-        { id: 346, n: "Salsa mostaza", p: 500 }, { id: 347, n: "Salsa pimienta blanca", p: 400 },
-        { id: 351, n: "Salsa pimienta española", p: 600 }, { id: 348, n: "Salsa queso azul roquefort", p: 1100 },
-        { id: 349, n: "Salsa vino tinto dulce", p: 400 }
+        { id: 343, n: "Salsa de champiñón blanca", p: 1500, c: 759 }, { id: 350, n: "Salsa de champiñón española", p: 1700, c: 825 },
+        { id: 42, n: "Salsa de alcaparras", p: 1600, c: 783 }, { id: 344, n: "Salsa finas hierbas", p: 900, c: 452 },
+        { id: 446, n: "Salsa latte harvest", p: 300, c: 142 }, { id: 345, n: "Salsa mignón champiñón", p: 800, c: 409 },
+        { id: 346, n: "Salsa mostaza", p: 500, c: 209 }, { id: 347, n: "Salsa pimienta blanca", p: 400, c: 188 },
+        { id: 351, n: "Salsa pimienta española", p: 600, c: 276 }, { id: 348, n: "Salsa queso azul roquefort", p: 1100, c: 527 },
+        { id: 349, n: "Salsa vino tinto dulce", p: 400, c: 201 }
       ],
       "Café": [
-        { id: 391, n: "Café", p: 700 }, { id: 441, n: "Café grande", p: 500 }, { id: 360, n: "Café sachet", p: 400 },
-        { id: 359, n: "Té de hierbas", p: 600 }, { id: 392, n: "Té", p: 100 }, { id: 361, n: "Té servicio", p: 700 }
+        { id: 391, n: "Café", p: 700, c: 315 }, { id: 441, n: "Café grande", p: 500, c: 239 }, { id: 360, n: "Café sachet", p: 400, c: 154 },
+        { id: 359, n: "Té de hierbas", p: 600, c: 300 }, { id: 392, n: "Té", p: 100, c: 43 }, { id: 361, n: "Té servicio", p: 700, c: 325 }
       ],
-      "Decoraciones": [{ id: 454, n: "Crocante de queso", p: 300 }, { id: 464, n: "Crujiente de arroz", p: 300 }, { id: 462, n: "Tuile", p: 300 }],
-      "Dressing": [{ id: 452, n: "Dressing de mango", p: 500 }, { id: 461, n: "Dressing de pimientos asados", p: 400 }],
+      "Decoraciones": [{ id: 454, n: "Crocante de queso", p: 300, c: 150 }, { id: 464, n: "Crujiente de arroz", p: 300, c: 150 }, { id: 462, n: "Tuile", p: 300, c: 150 }],
+      "Dressing": [{ id: 452, n: "Dressing de mango", p: 500, c: 209 }, { id: 461, n: "Dressing de pimientos asados", p: 400, c: 198 }],
       "Sandwich": [
-        { id: 365, n: "Ave italiano", p: 4400 }, { id: 22, n: "Barros luco", p: 5100 },
-        { id: 364, n: "Chacarero", p: 4100 }, { id: 363, n: "Churrasco italiano", p: 4800 },
-        { id: 389, n: "Tapadito ave pimentón", p: 700 }, { id: 390, n: "Tapadito salame queso crema y aceitunas", p: 700 }
+        { id: 365, n: "Ave italiano", p: 4400, c: 2254 }, { id: 22, n: "Barros luco", p: 5100, c: 2580 },
+        { id: 364, n: "Chacarero", p: 4100, c: 2051 }, { id: 363, n: "Churrasco italiano", p: 4800, c: 2412 },
+        { id: 389, n: "Tapadito ave pimentón", p: 700, c: 328 }, { id: 390, n: "Tapadito salame queso crema y aceitunas", p: 700, c: 336 }
       ]
     };
     
     let DATABASE;
     try {
       const storedDb = localStorage.getItem(DB_KEY);
-      DATABASE = storedDb ? JSON.parse(storedDb) : DATABASE_DEFAULTS;
+      DATABASE = storedDb ? JSON.parse(storedDb) : JSON.parse(JSON.stringify(DATABASE_DEFAULTS));
+      // Sync defaults
+      Object.keys(DATABASE_DEFAULTS).forEach(cat => {
+        if (!DATABASE[cat]) DATABASE[cat] = [];
+        DATABASE_DEFAULTS[cat].forEach(defItem => {
+          if (!DATABASE[cat].find(i => i.id === defItem.id)) {
+            DATABASE[cat].push(JSON.parse(JSON.stringify(defItem)));
+          }
+        });
+      });
+      localStorage.setItem(DB_KEY, JSON.stringify(DATABASE));
     } catch (e) {
-      DATABASE = DATABASE_DEFAULTS;
+      DATABASE = JSON.parse(JSON.stringify(DATABASE_DEFAULTS));
     }
 
     // ══ STATE ══
@@ -2646,6 +2638,35 @@
       const a = document.createElement('a'); a.href = url; a.download = 'cotizacion_' + budgetNumber + '_' + (fields.socio || 'evento').replace(/\s+/g, '_') + '.csv';
       document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
       showToast('✓ CSV exportado correctamente');
+    }
+
+    /* ── WHATSAPP SHARE ── */
+    function shareWhatsApp() {
+      const f = getFields(), kids = getChildrenCount();
+      if (Object.keys(cart).length === 0 && Object.keys(childrenCart).length === 0) { showToast('⚠ Agrega productos para compartir'); return; }
+      
+      let msg = `*CLUB DE SUBOFICIALES FACH*\nCotización N°${budgetNumber}\n\n`;
+      if (f.socio) msg += `Cliente: ${f.socio}\n`;
+      if (f.fecha) msg += `Fecha Evento: ${f.fecha}\n`;
+      msg += `Invitados: ${getPeople()} Adultos${kids > 0 ? `, ${kids} Niños` : ''}\n\n`;
+      
+      msg += `*RESUMEN*\n`;
+      let total = 0;
+      const calcCart = (cObj, title) => {
+        if(Object.keys(cObj).length > 0) {
+          msg += `_${title}_\n`;
+          Object.values(cObj).forEach(i => {
+            msg += `- ${i.n} (${i.qty} p/p) : ${fmt(i.p)}\n`;
+            total += i.p * i.qty;
+          });
+        }
+      };
+      calcCart(cart, 'MENÚ ADULTOS');
+      if (kids > 0) calcCart(childrenCart, 'MENÚ NIÑOS');
+      
+      msg += `\n*Total estimado:* ${document.getElementById('header-total').textContent}\n\nGracias por cotizar con nosotros.`;
+      
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     /* ── FIELDS ── */
