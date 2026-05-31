@@ -44,13 +44,13 @@
 </head>
 <body>
   <!-- LOGIN SCREEN -->
-  <div id="login-screen" style="position:fixed;inset:0;background:#f1f5f9;display:flex;align-items:center;justify-content:center;z-index:9999">
-    <div style="background:white;padding:32px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);width:100%;max-width:360px;text-align:center">
-      <div style="width:64px;height:64px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-        <i class="fas fa-lock" style="font-size:24px;color:#2563eb"></i>
+  <div id="login-screen" style="position:fixed;inset:0;background:linear-gradient(rgba(15,23,42,0.8), rgba(15,23,42,0.9)), url('./assets/calzada.jpg') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px)">
+    <div style="background:white;padding:36px 32px;border-radius:24px;box-shadow:0 20px 40px rgba(0,0,0,0.2);width:100%;max-width:380px;text-align:center;margin:20px">
+      <div style="margin:0 auto 16px;display:flex;justify-content:center">
+        <img src="./assets/logo2.jpg" alt="Logo" style="width:64px;height:64px;object-fit:contain;mix-blend-mode:multiply">
       </div>
-      <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin-bottom:4px">Acceso Restringido</h2>
-      <p style="font-size:13px;color:#64748b;margin-bottom:24px">Ingresa tus credenciales para administrar precios.</p>
+      <h2 style="font-size:22px;font-weight:900;color:#0f172a;margin-bottom:4px;letter-spacing:-0.5px">Club de Suboficiales</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:28px">Ingresa tus credenciales para administrar los precios del cotizador.</p>
       
       <form onsubmit="handleLogin(event)" style="display:flex;flex-direction:column;gap:12px">
         <input type="email" id="login-email" placeholder="Correo electrónico" required
