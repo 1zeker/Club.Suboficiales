@@ -90,6 +90,8 @@
     <span id="save-status" class="text-xs font-bold text-green-600 ml-2 opacity-0 transition-opacity">¡Guardado!</span>
     
     <button class="btn btn-red ml-auto flex-shrink-0" onclick="restoreDefaults()"><i class="fas fa-rotate-left"></i> Restaurar Originales</button>
+    <div class="w-px h-6 bg-slate-200 mx-1"></div>
+    <button class="btn btn-gray flex-shrink-0" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
   </div>
 
   <div class="p-3 md:p-6">
@@ -619,6 +621,11 @@ window.onload = () => {
     init();
   }
 };
+
+function logout() {
+  sessionStorage.removeItem('admin_auth');
+  window.location.reload();
+}
 </script>
 </body>
 </html>
