@@ -43,6 +43,38 @@
   </style>
 </head>
 <body>
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" style="position:fixed;inset:0;background:#f1f5f9;display:flex;align-items:center;justify-content:center;z-index:9999">
+    <div style="background:white;padding:32px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);width:100%;max-width:360px;text-align:center">
+      <div style="width:64px;height:64px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <i class="fas fa-lock" style="font-size:24px;color:#2563eb"></i>
+      </div>
+      <h2 style="font-size:20px;font-weight:800;color:#0f172a;margin-bottom:4px">Acceso Restringido</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:24px">Ingresa tus credenciales para administrar precios.</p>
+      
+      <form onsubmit="handleLogin(event)" style="display:flex;flex-direction:column;gap:12px">
+        <input type="email" id="login-email" placeholder="Correo electrónico" required
+          style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;outline:none;transition:border .2s">
+        <input type="password" id="login-pass" placeholder="Contraseña" required
+          style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:14px;outline:none;transition:border .2s">
+        
+        <p id="login-error" style="color:#ef4444;font-size:12px;font-weight:600;display:none;margin:0">Credenciales incorrectas.</p>
+        
+        <button type="submit"
+          style="width:100%;padding:12px;background:#2563eb;color:white;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px;transition:background .2s">
+          Entrar
+        </button>
+      </form>
+      
+      <button onclick="window.location.href='index.html'" 
+        style="margin-top:16px;background:none;border:none;color:#64748b;font-size:12px;cursor:pointer;font-weight:600;text-decoration:underline">
+        Volver al Cotizador
+      </button>
+    </div>
+  </div>
+
+  <!-- ADMIN APP -->
+  <div id="admin-app" style="display:none">
   <div class="hdr">
     <h1 class="text-xl font-bold tracking-wider">CLUB SOF — VALORIZACIÓN CARTA EVENTOS</h1>
     <p class="text-xs text-slate-300 mt-1">Plantilla de costeo y fijación de precios / Margen, IVA, Transbank, Proyección IPC</p>
@@ -561,7 +593,30 @@ function addProduct() {
   renderTable();
 }
 
-window.onload = init;
+</div> <!-- END ADMIN APP -->
+<script>
+function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  
+  if (email === 'machy650@gmail.com' && pass === '1234') {
+    sessionStorage.setItem('admin_auth', 'true');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-app').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+window.onload = () => {
+  if (sessionStorage.getItem('admin_auth') === 'true') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-app').style.display = 'block';
+    init();
+  }
+};
 </script>
 </body>
 </html>
