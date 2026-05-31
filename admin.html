@@ -597,7 +597,7 @@ function addProduct() {
 <script>
 function handleLogin(e) {
   e.preventDefault();
-  const email = document.getElementById('login-email').value.trim();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass = document.getElementById('login-pass').value.trim();
   
   if (email === 'machy650@gmail.com' && pass === '1234') {
