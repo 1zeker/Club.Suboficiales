@@ -2801,7 +2801,30 @@
 
     document.getElementById('history-modal').addEventListener('click', function (e) { if (e.target === this) closeHistory(); });
 
-    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./pwa/sw.js').catch(() => { }); }); }
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./pwa/sw.js').then(reg => {
+          // Check for updates every 60 seconds
+          setInterval(() => reg.update(), 60000);
+          // When a new SW is installed and waiting, activate it and reload
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New version available — reload to get it
+                showToast('🔄 Actualizando cotizador...');
+                setTimeout(() => window.location.reload(), 1500);
+              }
+            });
+          });
+        }).catch(() => {});
+        // If a SW took control (after update), reload once to apply
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) { refreshing = true; window.location.reload(); }
+        });
+      });
+    }
 
     // ── INIT ──
     renderCategories(); renderProducts(); updateUI(); updateHistoryBadge();
